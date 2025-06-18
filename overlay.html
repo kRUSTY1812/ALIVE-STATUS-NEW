@@ -22,11 +22,11 @@
 <body>
   <div id="overlay"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
-    const firebaseConfig = {
+  <!-- Firebase v8 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    var firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
       databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -36,13 +36,12 @@
       appId: "1:751537440201:web:ee16879d25632d4bb1d418",
       measurementId: "G-08RMSESNDR"
     };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
 
     const overlay = document.getElementById('overlay');
 
-    onValue(ref(db, "teams"), snapshot => {
+    firebase.database().ref("teams").on("value", snapshot => {
       const data = snapshot.val();
       overlay.innerHTML = '';
       if (!data) return;
