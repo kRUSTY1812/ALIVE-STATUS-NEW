@@ -13,14 +13,19 @@
       flex: 1; padding: 20px; background: #2a2a2a; border-radius: 10px;
     }
     .team-row {
-      display: flex; align-items: center; margin: 4px 0; padding: 6px 8px;
+      display: flex; align-items: center; margin: 6px 0; padding: 8px;
       background-image: url('assets/wood_strip.png'); background-size: cover;
       font-weight: bold; color: white;
     }
-    .logo { width: 30px; height: 30px; margin-right: 10px; }
-    .team-name { flex: 2; color: white; }
-    .kills { flex: 1; text-align: center; color: white; display: flex; align-items: center; justify-content: center; gap: 5px; }
-    .status { flex: 2; display: flex; justify-content: center; align-items: center; gap: 4px; }
+    .logo { width: 30px; height: 30px; margin-right: 10px; object-fit: contain; }
+    .team-name { flex: 2; color: white; padding-left: 5px; }
+    .kills {
+      flex: 1; text-align: center; color: white;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
+    .status {
+      flex: 2; display: flex; justify-content: center; align-items: center; gap: 4px;
+    }
     .status-icon { width: 20px; height: 20px; }
     .header-row {
       display: flex; align-items: center; justify-content: space-between;
@@ -28,7 +33,14 @@
     }
     input, select { width: 100%; padding: 8px; margin-bottom: 10px; }
     button { width: 100%; padding: 10px; background: #4CAF50; color: white; font-weight: bold; border: none; cursor: pointer; }
-    .icon-btn { background: none; border: none; color: yellow; font-size: 16px; cursor: pointer; }
+    .icon-btn {
+      background: #555; border: none; color: white; font-size: 14px;
+      width: 24px; height: 24px; border-radius: 4px; cursor: pointer;
+    }
+    .delete-btn {
+      background: none; border: none; font-size: 18px; color: red;
+      margin-left: 10px; cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -36,7 +48,7 @@
   <div class="container">
     <div class="form-section">
       <input type="text" id="name" placeholder="Team Name">
-      <input type="text" id="logo" placeholder="Team Logo URL">
+      <input type="text" id="logo" placeholder="Team Logo URL (e.g. /team-logos/TOX.png)">
       <label for="kills">Kills</label>
       <input type="number" id="kills" placeholder="Kills" value="0">
       <label for="aliveCount">Players Alive</label>
@@ -79,12 +91,12 @@
           <img class="logo" src="${team.logo}" alt="logo" onerror="this.style.display='none'">
           <div class="team-name">${team.name}</div>
           <div class="kills">
-            <button class="icon-btn" onclick="changeKills(${index}, -1)">-</button>
-            ${team.kills}
+            <button class="icon-btn" onclick="changeKills(${index}, -1)">−</button>
+            <span>${team.kills}</span>
             <button class="icon-btn" onclick="changeKills(${index}, 1)">+</button>
           </div>
           <div class="status">${aliveIcons}</div>
-          <button class="icon-btn" onclick="deleteTeam(${index})">❌</button>
+          <button class="delete-btn" onclick="deleteTeam(${index})">✕</button>
         `;
         overlay.appendChild(row);
       });
