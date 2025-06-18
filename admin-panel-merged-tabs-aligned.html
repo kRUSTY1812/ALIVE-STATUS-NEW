@@ -78,6 +78,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex: 1;
     }
     .team-logo {
       width: 40px;
@@ -88,10 +89,15 @@
       font-weight: bold;
       font-size: 16px;
     }
+    .control-block {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
     .control {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
     }
     .value {
       min-width: 24px;
@@ -224,17 +230,19 @@
               <img class="team-logo" src="${team.logo}" />
               <div class="team-name">${team.name}</div>
             </div>
-            <div class="control">
-              <span>Kills:</span>
-              <button onclick="updateTeamData('${id}', 'kills', -1)">-</button>
-              <span class="value">${team.kills}</span>
-              <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
-            </div>
-            <div class="control">
-              <span>Alive:</span>
-              <button onclick="updateTeamData('${id}', 'aliveCount', -1)">-</button>
-              <span class="value">${team.aliveCount}</span>
-              <button onclick="updateTeamData('${id}', 'aliveCount', 1)">+</button>
+            <div class="control-block">
+              <div class="control">
+                <label>Kills:</label>
+                <button onclick="updateTeamData('${id}', 'kills', -1)">-</button>
+                <span class="value">${team.kills}</span>
+                <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
+              </div>
+              <div class="control">
+                <label>Alive:</label>
+                <button onclick="updateTeamData('${id}', 'aliveCount', -1)">-</button>
+                <span class="value">${team.aliveCount}</span>
+                <button onclick="updateTeamData('${id}', 'aliveCount', 1)">+</button>
+              </div>
             </div>
           `;
           container.appendChild(row);
