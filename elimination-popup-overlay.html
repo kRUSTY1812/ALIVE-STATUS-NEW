@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Team Elimination Popup</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    #eliminationBox {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(0, 0, 0, 0.85);
+      border-radius: 12px;
+      padding: 30px;
+      color: white;
+      text-align: center;
+      min-width: 500px;
+      display: none;
+      animation: fadeInOut 4s ease-in-out;
+    }
+    .rank {
+      font-size: 48px;
+      color: gold;
+      font-weight: bold;
+    }
+    .team-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin: 20px auto;
+    }
+    .team-name {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+    .eliminated {
+      color: red;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .points, .finishes {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translate(-50%, -60%); }
+      10% { opacity: 1; transform: translate(-50%, -50%); }
+      90% { opacity: 1; transform: translate(-50%, -50%); }
+      100% { opacity: 0; transform: translate(-50%, -40%); }
+    }
+  </style>
+</head>
+<body>
+  <div id="eliminationBox">
+    <div class="rank" id="rank">#1</div>
+    <img class="team-logo" id="logo" src="" alt="Team Logo">
+    <div class="team-name" id="name">TEAM NAME</div>
+    <div class="eliminated">ELIMINATED</div>
+    <div class="finishes" id="finishes">5 Finishes</div>
+    <div class="points" id="points">10 Placement Points</div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
+      authDomain: "team-overlay.firebaseapp.com",
+      databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "team-overlay",
+      storageBucket: "team-overlay.appspot.com",
+      messagingSenderId: "751537440201",
+      appId: "1:751537440201:web:ee16879d25632d4bb1d418"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const shown = new Set();
+    const eliminationOrder = [];
+
+    const placementPoints = [10, 6, 5, 4, 3, 2, 1, 1]; // 1-8
+
+    function showElimination(team, rank) {
+      document.getElementById("rank").textContent = `#${rank}`;
+      document.getElementById("logo").src = team.logo;
+      document.getElementById("name").textContent = team.name;
+      document.getElementById("finishes").textContent = `${team.kills} Finishes`;
+
+      const point = rank <= 8 ? placementPoints[rank - 1] : 0;
+      document.getElementById("points").textContent = `${point} Placement Points`;
+
+      const box = document.getElementById("eliminationBox");
+      box.style.display = "block";
+      box.style.animation = "fadeInOut 4s ease-in-out";
+
+      setTimeout(() => {
+        box.style.display = "none";
+      }, 4000);
+    }
+
+    db.ref("teams").on("value", (snapshot) => {
+      const data = snapshot.val();
+      Object.entries(data).forEach(([id, team]) => {
+        if (team.aliveCount === 0 && !shown.has(id)) {
+          shown.add(id);
+          eliminationOrder.push({ id, timestamp: Date.now() });
+
+          const ordered = eliminationOrder.sort((a, b) => a.timestamp - b.timestamp);
+          const rank = 16 - ordered.findIndex(entry => entry.id === id);
+
+          showElimination(team, rank);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
