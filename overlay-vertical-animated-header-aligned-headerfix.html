@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Overlay - Consistent Padding TEAM Header</title>
+  <title>Overlay - Aligned TEAM Header</title>
   <style>
     body {
       margin: 0;
@@ -22,7 +22,7 @@
     .header-row {
       display: flex;
       align-items: center;
-      padding: 6px 6px 6px 110px; /* align with team-name using padding only */
+      padding: 6px;
       background: rgba(0, 0, 0, 0.7);
       color: yellow;
       font-weight: bold;
@@ -30,19 +30,11 @@
       margin-bottom: 6px;
       border-radius: 6px;
     }
-    .header-row div {
-      text-align: left;
-    }
     .header-row .team-name {
-      flex: 1.5;
+      padding-left: 50px;
     }
     .header-row .kills {
-      width: 30px;
-      text-align: center;
-      margin-left: -30px;
-    }
-    .header-row .status-icons {
-      width: 80px;
+      transform: translateX(-30px);
     }
     .team {
       display: flex;
@@ -85,7 +77,7 @@
     .kills {
       width: 30px;
       text-align: center;
-      margin-left: -30px;
+      transform: translateX(-30px);
     }
     .status-icons {
       display: flex;
@@ -100,6 +92,8 @@
 <body>
   <div class="overlay-wrapper">
     <div class="header-row">
+      <div class="rank">#</div>
+      <div style="width: 26px;"></div>
       <div class="team-name">TEAM</div>
       <div class="kills">FIN</div>
       <div class="status-icons">STATUS</div>
