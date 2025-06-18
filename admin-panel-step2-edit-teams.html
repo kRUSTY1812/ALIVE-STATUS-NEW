@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Add Team</title>
+  <title>Admin Panel - Add/Edit Teams</title>
   <style>
     body {
       background: #121212;
@@ -54,6 +54,12 @@
       background: #2c2c2c;
       border-radius: 6px;
       gap: 12px;
+      justify-content: space-between;
+    }
+    .team-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
     .team-entry img {
       width: 30px;
@@ -63,15 +69,18 @@
     .team-name {
       font-weight: bold;
     }
+    .edit-button {
+      background-color: #2196f3;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Add Team</h2>
+    <h2>Add / Edit Team</h2>
     <div class="form-row">
       <input type="text" id="newTeamName" placeholder="Team Name">
       <input type="text" id="newTeamLogo" placeholder="Logo URL">
-      <button onclick="addTeam()">Add Team</button>
+      <button onclick="addOrUpdateTeam()">Add / Update</button>
     </div>
 
     <div class="playing-teams">
@@ -95,10 +104,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    function addTeam() {
+    let currentEditId = null;
+
+    function addOrUpdateTeam() {
       const name = document.getElementById("newTeamName").value;
       const logo = document.getElementById("newTeamLogo").value;
-      const id = name.toLowerCase().replace(/\s+/g, "_");
+      const id = currentEditId || name.toLowerCase().replace(/\s+/g, "_");
 
       if (!name || !logo) {
         alert("Enter both team name and logo URL.");
@@ -114,6 +125,16 @@
 
       document.getElementById("newTeamName").value = "";
       document.getElementById("newTeamLogo").value = "";
+      currentEditId = null;
+    }
+
+    function editTeam(id) {
+      db.ref("teams/" + id).once("value").then(snapshot => {
+        const team = snapshot.val();
+        document.getElementById("newTeamName").value = team.name;
+        document.getElementById("newTeamLogo").value = team.logo;
+        currentEditId = id;
+      });
     }
 
     function loadTeams() {
@@ -126,8 +147,11 @@
           const div = document.createElement("div");
           div.className = "team-entry";
           div.innerHTML = `
-            <img src="${team.logo}" alt="">
-            <div class="team-name">${team.name}</div>
+            <div class="team-info">
+              <img src="${team.logo}" alt="">
+              <div class="team-name">${team.name}</div>
+            </div>
+            <button class="edit-button" onclick="editTeam('${key}')">Edit</button>
           `;
           teamList.appendChild(div);
         });
