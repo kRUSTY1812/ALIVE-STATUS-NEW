@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Final Aligned Overlay</title>
+  <title>Overlay - Corrected Alignment</title>
   <style>
     body {
       margin: 0;
@@ -31,10 +31,10 @@
       border-radius: 6px;
     }
     .header-row .team-name {
-      padding-left: 60px; /* match team-name shift */
+      transform: translateX(60px);
     }
     .header-row .kills {
-      margin-left: -30px; /* shift FIN column left */
+      transform: translateX(-30px);
     }
     .team {
       display: flex;
@@ -77,7 +77,7 @@
     .kills {
       width: 30px;
       text-align: center;
-      margin-left: -30px;
+      transform: translateX(-30px);
     }
     .status-icons {
       display: flex;
@@ -101,7 +101,6 @@
     <div id="overlay"></div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
