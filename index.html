@@ -1,3 +1,181 @@
 <!DOCTYPE html>
-<!-- Admin panel code here (shortened for ZIP example) -->
-<html><body><h2>Admin Panel Placeholder</h2></body></html>
+<html>
+<head>
+  <title>Team Status Admin Panel</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #1e1e1e;
+      color: white;
+    }
+    h2 {
+      text-align: center;
+      margin-top: 10px;
+      color: yellow;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      padding: 20px;
+    }
+    .form-section, .preview-section {
+      flex: 1;
+      padding: 20px;
+      background: #2a2a2a;
+      border-radius: 10px;
+    }
+    .team-row {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+      padding: 6px 8px;
+      background-image: url('assets/wood_strip.png');
+      background-size: cover;
+      font-weight: bold;
+      color: white;
+    }
+    .logo {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+    }
+    .team-name {
+      flex: 2;
+      color: white;
+    }
+    .kills {
+      flex: 1;
+      text-align: center;
+      color: white;
+    }
+    .status {
+      flex: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+    }
+    .status-icon {
+      width: 20px;
+      height: 20px;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      background-color: #333;
+      font-weight: bold;
+      color: yellow;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>Team Admin Panel</h2>
+  <div class="container">
+    <div class="form-section">
+      <input type="text" id="name" placeholder="Team Name">
+      <input type="text" id="logo" placeholder="Logo URL">
+      <input type="number" id="kills" placeholder="Kills">
+      <select multiple id="status">
+        <option value="alive">Alive</option>
+        <option value="knocked">Knocked</option>
+        <option value="dead">Dead</option>
+      </select>
+      <button onclick="addTeam()">Add / Update Team</button>
+    </div>
+
+    <div class="preview-section">
+      <div class="header-row">
+        <div style="flex: 0.5;">#</div>
+        <div style="flex: 2;">TEAM</div>
+        <div style="flex: 1; text-align: center;">KILLS</div>
+        <div style="flex: 2; text-align: center;">ALIVE</div>
+      </div>
+      <div id="overlay"></div>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    let teams = [];
+
+    function getIcon(type) {
+      switch (type) {
+        case 'alive': return 'assets/alive-yellow.png';
+        case 'knocked': return 'assets/knocked-white.png';
+        case 'dead': return 'assets/dead-red.png';
+        default: return '';
+      }
+    }
+
+    function render() {
+      overlay.innerHTML = '';
+      teams.slice(0, 16).forEach((team, index) => {
+        const row = document.createElement('div');
+        row.className = 'team-row';
+        row.innerHTML = `
+          <div style="flex: 0.5; color: white;">${index + 1}</div>
+          <img class="logo" src="${team.logo}" alt="logo">
+          <div class="team-name">${team.name}</div>
+          <div class="kills">${team.kills}</div>
+          <div class="status">
+            ${team.status.map(type => `<img class="status-icon" src="${getIcon(type)}">`).join('')}
+          </div>
+        `;
+        overlay.appendChild(row);
+      });
+
+      const json = JSON.stringify(teams, null, 2);
+      localStorage.setItem('teamData', json);
+    }
+
+    function addTeam() {
+      const name = document.getElementById('name').value;
+      const logo = document.getElementById('logo').value;
+      const kills = parseInt(document.getElementById('kills').value);
+      const statusOptions = document.getElementById('status');
+      const status = Array.from(statusOptions.selectedOptions).map(opt => opt.value);
+
+      const existing = teams.find(t => t.name === name);
+      if (existing) {
+        existing.logo = logo;
+        existing.kills = kills;
+        existing.status = status;
+      } else {
+        teams.push({ name, logo, kills, status });
+      }
+
+      render();
+    }
+
+    function loadFromStorage() {
+      const saved = localStorage.getItem('teamData');
+      if (saved) {
+        teams = JSON.parse(saved);
+        render();
+      }
+    }
+
+    loadFromStorage();
+  </script>
+</body>
+</html>
