@@ -3,41 +3,44 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Leaderboard Overlay</title>
+  <title>Leaderboard Overlay with Positioning</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: transparent;
-      color: white;
     }
-    .container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      padding: 10px;
-      box-sizing: border-box;
+    .top-header, .team-list, .bottom-summary {
+      position: absolute;
+      left: 512px;
     }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      padding: 5px 10px;
-      font-weight: bold;
-      font-size: 20px;
+    .top-header {
+      top: 57px;
       background: rgba(0,0,0,0.6);
       color: yellow;
+      font-weight: bold;
+      font-size: 20px;
+      display: flex;
+      padding: 8px 10px;
+      width: 900px;
+    }
+    .team-list {
+      top: 801px;
+      width: 900px;
+    }
+    .bottom-summary {
+      top: 1511px;
+      width: 900px;
+      color: white;
+      font-size: 18px;
     }
     .team {
       display: flex;
       align-items: center;
-      padding: 5px 10px;
+      padding: 6px 10px;
       font-size: 18px;
       background: rgba(0,0,0,0.4);
       margin-bottom: 2px;
-    }
-    .team span {
-      flex: 1;
-      color: white;
     }
     .team-logo {
       width: 30px;
@@ -53,35 +56,36 @@
       height: 18px;
     }
     .rank {
-      width: 30px;
+      width: 40px;
       text-align: center;
       color: white;
     }
     .team-name {
       flex: 3;
-      color: white;
       display: flex;
       align-items: center;
+      color: white;
     }
     .kills {
-      width: 50px;
+      width: 60px;
       text-align: center;
       color: white;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="rank">#</div>
-      <div class="team-name">TEAM</div>
-      <div class="kills">KILLS</div>
-      <div class="status-icons">ALIVE</div>
-    </div>
-    <div id="teams"></div>
+  <div class="top-header">
+    <div class="rank">#</div>
+    <div class="team-name">TEAM</div>
+    <div class="kills">KILLS</div>
+    <div class="status-icons">ALIVE</div>
   </div>
 
-  <!-- Firebase v8 -->
+  <div class="team-list" id="teams"></div>
+
+  <div class="bottom-summary" id="summary"></div>
+
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
@@ -113,6 +117,17 @@
       return iconsArr;
     }
 
+    function renderSummary(data) {
+      let totalAlive = 0;
+      let totalDead = 0;
+      for (const t of Object.values(data)) {
+        totalAlive += t.aliveCount;
+        totalDead += (4 - t.aliveCount);
+      }
+      document.getElementById("summary").innerText =
+        `ALIVE: ${totalAlive}   |   ELIMINATED: ${totalDead}`;
+    }
+
     function renderTeams(data) {
       const teamsDiv = document.getElementById("teams");
       const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills);
@@ -134,6 +149,8 @@
         `;
         teamsDiv.appendChild(teamEl);
       });
+
+      renderSummary(data);
     }
 
     db.ref("teams").on("value", snapshot => {
