@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status Overlay</title>
+  <title>Alive Status Overlay (Debug)</title>
   <style>
     html, body {
       margin: 0;
@@ -24,7 +24,8 @@
       background: rgba(0, 0, 0, 0.6);
       display: flex;
       justify-content: space-between;
-      padding: 5px 15px;
+      align-items: center;
+      padding: 6px 12px;
       font-weight: bold;
     }
     .row {
@@ -45,6 +46,7 @@
       align-items: center;
       flex: 1;
       color: #eac278;
+      font-size: 16px;
     }
     .team img {
       width: 28px;
@@ -53,8 +55,12 @@
       object-fit: contain;
     }
     .fin, .status {
-      width: 90px;
+      width: 100px;
       text-align: center;
+      font-size: 14px;
+    }
+    .status img {
+      margin-left: 2px;
     }
   </style>
 </head>
@@ -91,6 +97,8 @@
     };
 
     function createRow(team, index) {
+      console.log("Rendering team:", team);
+
       const row = document.createElement("div");
       row.className = "row";
       row.style.backgroundImage = team.aliveCount === 0
@@ -112,16 +120,17 @@
 
       const fin = document.createElement("div");
       fin.className = "fin";
-      fin.textContent = team.kills;
+      fin.textContent = typeof team.kills === 'number' ? team.kills : 0;
 
       const status = document.createElement("div");
       status.className = "status";
       const total = 4;
+      const alive = typeof team.aliveCount === 'number' ? team.aliveCount : 0;
       for (let i = 0; i < total; i++) {
         const img = document.createElement("img");
         img.width = 18;
         img.height = 18;
-        img.src = i < team.aliveCount ? icons.alive : icons.eliminated;
+        img.src = i < alive ? icons.alive : icons.eliminated;
         status.appendChild(img);
       }
 
