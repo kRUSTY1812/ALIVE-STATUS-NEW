@@ -85,17 +85,17 @@
     const db = firebase.database();
 
     const icons = {
-      alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
-      knocked: "https://alive-status-new-m1la.vercel.app/assets/knocked-white.png",
-      eliminated: "https://alive-status-new-m1la.vercel.app/assets/dead-red.png",
+      alive: "assets/alive-yellow.png",
+      knocked: "assets/knocked-white.png",
+      eliminated: "assets/eliminated-red.png"
     };
 
     function createRow(team, index) {
       const row = document.createElement("div");
       row.className = "row";
       row.style.backgroundImage = team.aliveCount === 0
-        ? "url('./team-row-bg-eliminated.png')"
-        : "url('./team-row-bg.png')";
+        ? "url('assets/team-row-bg-eliminated.png')"
+        : "url('assets/team-row-bg.png')";
 
       const rank = document.createElement("div");
       rank.className = "rank";
@@ -117,17 +117,11 @@
       const status = document.createElement("div");
       status.className = "status";
       const total = 4;
-      const iconsList = [];
       for (let i = 0; i < total; i++) {
         const img = document.createElement("img");
         img.width = 18;
         img.height = 18;
-        if (i < team.aliveCount) {
-          img.src = icons.alive;
-        } else {
-          img.src = icons.eliminated;
-        }
-        iconsList.push(img);
+        img.src = i < team.aliveCount ? icons.alive : icons.eliminated;
         status.appendChild(img);
       }
 
