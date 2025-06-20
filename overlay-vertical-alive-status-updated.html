@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Alive Status Overlay</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+    }
+    .container {
+      position: absolute;
+      width: 827px;
+      height: 404px;
+      left: 1519px;
+      top: 253px;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .header {
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: space-between;
+      padding: 5px 15px;
+      font-weight: bold;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 48px;
+      background-repeat: no-repeat;
+      background-size: cover;
+      padding: 0 10px;
+      margin-bottom: 2px;
+    }
+    .rank {
+      width: 40px;
+    }
+    .team {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      color: #eac278;
+    }
+    .team img {
+      width: 28px;
+      height: 28px;
+      margin-right: 8px;
+      object-fit: contain;
+    }
+    .fin, .status {
+      width: 90px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="aliveContainer">
+    <div class="header">
+      <div class="rank">#</div>
+      <div class="team">TEAM</div>
+      <div class="fin">FINISH</div>
+      <div class="status">STATUS</div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
+      authDomain: "team-overlay.firebaseapp.com",
+      databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "team-overlay",
+      storageBucket: "team-overlay.appspot.com",
+      messagingSenderId: "751537440201",
+      appId: "1:751537440201:web:ee16879d25632d4bb1d418"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const icons = {
+      alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
+      knocked: "https://alive-status-new-m1la.vercel.app/assets/knocked-white.png",
+      eliminated: "https://alive-status-new-m1la.vercel.app/assets/dead-red.png",
+    };
+
+    function createRow(team, index) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.style.backgroundImage = team.aliveCount === 0
+        ? "url('./team-row-bg-eliminated.png')"
+        : "url('./team-row-bg.png')";
+
+      const rank = document.createElement("div");
+      rank.className = "rank";
+      rank.textContent = `#${index + 1}`;
+
+      const teamDiv = document.createElement("div");
+      teamDiv.className = "team";
+      const logo = document.createElement("img");
+      logo.src = team.logo;
+      const name = document.createElement("span");
+      name.textContent = team.name;
+      teamDiv.appendChild(logo);
+      teamDiv.appendChild(name);
+
+      const fin = document.createElement("div");
+      fin.className = "fin";
+      fin.textContent = team.kills;
+
+      const status = document.createElement("div");
+      status.className = "status";
+      const total = 4;
+      const iconsList = [];
+      for (let i = 0; i < total; i++) {
+        const img = document.createElement("img");
+        img.width = 18;
+        img.height = 18;
+        if (i < team.aliveCount) {
+          img.src = icons.alive;
+        } else {
+          img.src = icons.eliminated;
+        }
+        iconsList.push(img);
+        status.appendChild(img);
+      }
+
+      row.appendChild(rank);
+      row.appendChild(teamDiv);
+      row.appendChild(fin);
+      row.appendChild(status);
+      return row;
+    }
+
+    db.ref("teams").on("value", (snapshot) => {
+      const container = document.getElementById("aliveContainer");
+      const existing = container.querySelectorAll(".row");
+      existing.forEach(e => e.remove());
+
+      const teams = [];
+      snapshot.forEach(child => {
+        const team = child.val();
+        team.id = child.key;
+        teams.push(team);
+      });
+
+      teams
+        .sort((a, b) => {
+          if (a.aliveCount === 0 && b.aliveCount !== 0) return 1;
+          if (a.aliveCount !== 0 && b.aliveCount === 0) return -1;
+          if (b.kills !== a.kills) return b.kills - a.kills;
+          return b.aliveCount - a.aliveCount;
+        })
+        .forEach((team, index) => {
+          const row = createRow(team, index);
+          container.appendChild(row);
+        });
+    });
+  </script>
+</body>
+</html>
