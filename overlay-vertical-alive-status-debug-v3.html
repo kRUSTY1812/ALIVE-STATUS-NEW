@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status Overlay Debug v2</title>
+  <title>Alive Status Overlay Debug v3</title>
   <style>
     html, body {
       margin: 0;
@@ -58,15 +58,18 @@
     .fin {
       width: 100px;
       text-align: center;
-      font-size: 14px;
-      background: rgba(100, 100, 100, 0.3); /* debug background */
+      font-size: 16px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid red;
+      color: white;
     }
     .status {
-      width: 140px;
+      width: 160px;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: rgba(255, 0, 0, 0.2); /* debug background */
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid yellow;
     }
     .status img {
       margin: 0 2px;
@@ -131,15 +134,16 @@
 
       const fin = document.createElement("div");
       fin.className = "fin";
-      fin.textContent = typeof team.kills === 'number' ? team.kills : 0;
+      fin.textContent = (typeof team.kills === 'number') ? team.kills : 0;
 
       const status = document.createElement("div");
       status.className = "status";
       const total = 4;
-      const alive = typeof team.aliveCount === 'number' ? team.aliveCount : 0;
+      const alive = (typeof team.aliveCount === 'number') ? team.aliveCount : 0;
       for (let i = 0; i < total; i++) {
         const img = document.createElement("img");
         img.src = i < alive ? icons.alive : icons.eliminated;
+        img.alt = i < alive ? "A" : "E";
         status.appendChild(img);
       }
 
