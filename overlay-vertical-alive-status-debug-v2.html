@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status Overlay (Debug)</title>
+  <title>Alive Status Overlay Debug v2</title>
   <style>
     html, body {
       margin: 0;
@@ -40,6 +40,7 @@
     }
     .rank {
       width: 40px;
+      flex-shrink: 0;
     }
     .team {
       display: flex;
@@ -54,13 +55,23 @@
       margin-right: 8px;
       object-fit: contain;
     }
-    .fin, .status {
+    .fin {
       width: 100px;
       text-align: center;
       font-size: 14px;
+      background: rgba(100, 100, 100, 0.3); /* debug background */
+    }
+    .status {
+      width: 140px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: rgba(255, 0, 0, 0.2); /* debug background */
     }
     .status img {
-      margin-left: 2px;
+      margin: 0 2px;
+      width: 20px;
+      height: 20px;
     }
   </style>
 </head>
@@ -128,8 +139,6 @@
       const alive = typeof team.aliveCount === 'number' ? team.aliveCount : 0;
       for (let i = 0; i < total; i++) {
         const img = document.createElement("img");
-        img.width = 18;
-        img.height = 18;
         img.src = i < alive ? icons.alive : icons.eliminated;
         status.appendChild(img);
       }
