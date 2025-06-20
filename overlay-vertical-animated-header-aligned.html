@@ -1,34 +1,16 @@
 
 <!DOCTYPE html>
-
 <html>
 <head>
-<meta charset="utf-8"/>
-<title>Final Aligned Overlay</title>
-<style>
+  <meta charset="UTF-8">
+  <title>Final Aligned Overlay</title>
+  <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: transparent;
     }
     .overlay-wrapper {
-  position: absolute;
-  top: 253px;
-  left: 1519px;
-  width: 827px;
-  height: 404px;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-
-      position: absolute;
-      top: 253px;
-      left: 1519px;
-      width: 827px;
-      height: 404px;
-      background: transparent; /* transparent bg */
-      border-radius: 0;
-      padding: 0; margin: 0;
       position: absolute;
       top: 70px;
       right: 30px;
@@ -38,9 +20,6 @@
       padding: 10px;
     }
     .header-row {
-  background-color: rgba(0, 0, 0, 0.6);
-
-      background: rgba(0, 0, 0, 0.6);
       display: flex;
       align-items: center;
       padding: 6px;
@@ -111,20 +90,21 @@
   </style>
 </head>
 <body>
-<div class="overlay-wrapper">
-<div class="header-row">
-<div class="rank">#</div>
-<div style="width: 26px;"></div>
-<div class="team-name">TEAM</div>
-<div class="kills">FIN</div>
-<div class="status-icons">STATUS</div>
-</div>
-<div id="overlay"></div>
-</div>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
+  <div class="overlay-wrapper">
+    <div class="header-row">
+      <div class="rank">#</div>
+      <div style="width: 26px;"></div>
+      <div class="team-name">TEAM</div>
+      <div class="kills">FIN</div>
+      <div class="status-icons">STATUS</div>
+    </div>
+    <div id="overlay"></div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
