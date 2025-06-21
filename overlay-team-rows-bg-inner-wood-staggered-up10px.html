@@ -132,8 +132,8 @@
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
@@ -151,84 +151,42 @@
       dead: "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
     };
 
-    let lastData = {};
-
     function createStatusIcons(aliveCount) {
       const total = 4;
-      return Array.from({ length: total }).map((_, i) =>
-        i < aliveCount ? icons.alive : icons.dead
-      );
+      const iconsArr = [];
+      for (let i = 0; i < total; i++) {
+        iconsArr.push(i < aliveCount ? icons.alive : icons.dead);
+      }
+      return iconsArr;
     }
 
-    function createRow(team, idx, animate = false) {
-      const row = document.createElement("div");
-      row.className = "team";
-      if (animate) row.classList.add("animate");
-      row.id = "team-" + team.id;
-
-      const statusIconsHTML = createStatusIcons(team.aliveCount)
-        .map(icon => `<img src="\${icon}">`).join("");
-
-      row.innerHTML = \`
-        <div class='team-content'>
-          <div class="rank">#\${idx + 1}</div>
-          <img class="team-logo" src="\${team.logo}" onerror="this.style.display='none'">
-          <div class="team-name">\${team.name}</div>
-          <div class="kills">\${team.kills}</div>
-          <div class="status-icons">\${statusIconsHTML}</div>
-        </div>\`;
-
-      return row;
-    }
-
+    
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
-      const teamArray = Object.entries(data || {}).map(([id, team]) => ({ id, ...team }));
+      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills);
+      wrapper.innerHTML = "";
 
-      teamArray.sort((a, b) => {
-        if (a.aliveCount === 0 && b.aliveCount !== 0) return 1;
-        if (b.aliveCount === 0 && a.aliveCount !== 0) return -1;
-        if (b.kills !== a.kills) return b.kills - a.kills;
-        return b.aliveCount - a.aliveCount;
+      teamsArray.slice(0, 16).forEach((team, idx) => {
+        const row = document.createElement("div");
+        row.className = "team";
+        const delay = idx * 100;
+        row.innerHTML = `<div class='team-content' style="opacity: 0; animation: fadeSlideIn 0.4s ease ${delay}ms forwards;">
+          <div class="rank">#${idx + 1}</div>
+          <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
+          <div class="team-name">${team.name}</div>
+          <div class="kills">${team.kills}</div>
+          <div class="status-icons">
+            ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
+          </div>
+        </div>`;
+        wrapper.appendChild(row);
       });
-
-      const existingMap = {};
-      Array.from(wrapper.children).forEach(child => {
-        existingMap[child.id] = child;
-      });
-
-      // Track updated DOM order
-      const newOrder = [];
-
-      teamArray.slice(0, 16).forEach((team, idx) => {
-        const existing = existingMap["team-" + team.id];
-        const isChanged = JSON.stringify(lastData[team.id]) !== JSON.stringify(team);
-
-        if (existing && !isChanged) {
-          newOrder.push(existing);
-        } else {
-          const newRow = createRow(team, idx, isChanged);
-          newOrder.push(newRow);
-        }
-
-        lastData[team.id] = { ...team };
-      });
-
-      // Patch DOM in correct order without clearing
-      newOrder.forEach((row, idx) => {
-        const existing = wrapper.children[idx];
-        if (existing !== row) {
-          wrapper.insertBefore(row, existing || null);
-        }
-      });
-
-      // Remove any leftover old rows
-      while (wrapper.children.length > newOrder.length) {
-        wrapper.removeChild(wrapper.lastChild);
-      }
     }
 
-    db.ref("teams").on("value", snap => renderOverlay(snap.val()));
-</script>
-</div></body>
+db.ref("teams").on("value", snapshot => {
+      renderOverlay(snapshot.val());
+    });
+  </script>
+</div>
+</body>
 </html>
