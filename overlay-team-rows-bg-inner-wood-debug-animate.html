@@ -158,6 +158,9 @@
     let prevData = {};
 
     function renderOverlay(data) {
+      console.clear();
+      console.log("🔥 Incoming Firebase Data:", data);
+
       const wrapper = document.getElementById("overlay");
       const teamsArray = Object.entries(data || {})
         .map(([key, team]) => ({ key, ...team }))
@@ -168,6 +171,8 @@
       teamsArray.slice(0, 16).forEach((team, idx) => {
         const prev = prevData[team.key];
         const changed = !prev || prev.kills !== team.kills || prev.aliveCount !== team.aliveCount;
+
+        console.log("➡️ Row", idx, team.name, changed ? "🔁 Changed" : "✅ Unchanged");
 
         const row = document.createElement("div");
         row.className = "team";
