@@ -155,7 +155,9 @@
 
     function createStatusIcons(aliveCount) {
       const total = 4;
-      return Array.from({length: total}).map((_, i) => i < aliveCount ? icons.alive : icons.dead);
+      return Array.from({ length: total }).map((_, i) =>
+        i < aliveCount ? icons.alive : icons.dead
+      );
     }
 
     function renderOverlay(data) {
@@ -169,18 +171,19 @@
         return b.aliveCount - a.aliveCount;
       });
 
-      wrapper.innerHTML = "";
+      const newHTMLMap = {};
 
       teamArray.slice(0, 16).forEach((team, idx) => {
+        const isChanged = JSON.stringify(lastData[team.id]) !== JSON.stringify(team);
+        const statusIconsHTML = createStatusIcons(team.aliveCount)
+          .map(icon => `<img src="${icon}">`)
+          .join("");
+
         const row = document.createElement("div");
         row.className = "team";
-
-        const isChanged = JSON.stringify(lastData[team.id]) !== JSON.stringify(team);
         if (isChanged) row.classList.add("animate");
 
-        const statusIconsHTML = createStatusIcons(team.aliveCount)
-          .map(icon => `<img src="${icon}">`).join("");
-
+        row.id = "team-" + team.id;
         row.innerHTML = `
           <div class='team-content'>
             <div class="rank">#${idx + 1}</div>
@@ -188,11 +191,15 @@
             <div class="team-name">${team.name}</div>
             <div class="kills">${team.kills}</div>
             <div class="status-icons">${statusIconsHTML}</div>
-          </div>
-        `;
-        wrapper.appendChild(row);
+          </div>`;
+
+        newHTMLMap[team.id] = row;
         lastData[team.id] = { ...team };
       });
+
+      // Replace or insert rows
+      wrapper.innerHTML = ""; // for full replacement (necessary only if we switch to keyed DOM diff, keeping for now)
+      Object.values(newHTMLMap).forEach(row => wrapper.appendChild(row));
     }
 
     db.ref("teams").on("value", snap => renderOverlay(snap.val()));
