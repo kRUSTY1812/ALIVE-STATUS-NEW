@@ -110,6 +110,12 @@
   100% { opacity: 1; transform: translateY(0); }
 }
 
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
 </style>
 </head>
 <body>
@@ -155,28 +161,43 @@
       return iconsArr;
     }
 
+    
+    let prevData = {};
+
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
-      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills);
+      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills || b.aliveCount - a.aliveCount);
       wrapper.innerHTML = "";
 
       teamsArray.slice(0, 16).forEach((team, idx) => {
+        const prev = prevData[team.name];
+        const changed = !prev || prev.kills !== team.kills || prev.aliveCount !== team.aliveCount;
+
         const row = document.createElement("div");
         row.className = "team";
-        row.innerHTML = `<div class='team-content' style="animation: fadeInOut 0.4s ease forwards;">
-          <div class="rank">#${idx + 1}</div>
-          <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
-          <div class="team-name">${team.name}</div>
-          <div class="kills">${team.kills}</div>
-          <div class="status-icons">
-            ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
+        row.innerHTML = \`
+          <div class='team-content' style="\${changed ? 'animation: fadeInOut 0.4s ease forwards;' : ''}">
+            <div class="rank">#\${idx + 1}</div>
+            <img class="team-logo" src="\${team.logo}" onerror="this.style.display='none'">
+            <div class="team-name">\${team.name}</div>
+            <div class="kills">\${team.kills}</div>
+            <div class="status-icons">
+              \${createStatusIcons(team.aliveCount).map(icon => \`<img src="\${icon}">\`).join("")}
+            </div>
           </div>
-        `;
+        \`;
+
         wrapper.appendChild(row);
+      });
+
+      // Update previous data snapshot
+      prevData = {};
+      teamsArray.forEach(team => {
+        prevData[team.name] = { kills: team.kills, aliveCount: team.aliveCount };
       });
     }
 
-    db.ref("teams").on("value", snapshot => {
+db.ref("teams").on("value", snapshot => {
       renderOverlay(snapshot.val());
     });
   </script>
