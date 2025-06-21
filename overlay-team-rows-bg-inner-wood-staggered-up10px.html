@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Alive Status Overlay - Firebase v9</title>
+  <title>Final Aligned Overlay</title>
   <style>
     body {
       margin: 0;
@@ -12,8 +12,8 @@
     }
     .overlay-wrapper {
       position: absolute;
-      top: 183px;
-      left: 1484px;
+      top: 0px;
+      left: 0px;
       width: 404px;
       height: 827px;
       background: none;
@@ -31,12 +31,13 @@
       font-weight: bold;
       font-size: 16px;
       margin-bottom: 6px;
+      
     }
     .header-row .team-name {
-      padding-left: 30px;
+      padding-left: 30px; /* match team-name shift */
     }
     .header-row .kills {
-      transform: translateX(-40px);
+      transform: translateX(-40px); /* shift FIN column left */
     }
     .team {
       display: flex;
@@ -47,10 +48,18 @@
       padding: 4px 6px;
       font-size: 16px;
       background: none;
+      margin-bottom: 0px;
+      
       color: white;
       opacity: 0;
       transform: translateY(10px);
       animation: fadeSlideIn 0.4s ease forwards;
+    }
+    @keyframes fadeSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
     .rank {
       width: 28px;
@@ -81,39 +90,36 @@
       gap: 3px;
     }
     .team-content {
-      width: 100%;
-      height: 100%;
-      background: url('assets/wood.png') no-repeat center/cover;
-      display: flex;
-      align-items: center;
-      padding: 0 6px;
-      box-sizing: border-box;
-    }
-    .status-icons img {
+  width: 100%;
+  height: 100%;
+  background: url('assets/wood.png') no-repeat center/cover;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.status-icons img {
       width: 14px;
       height: 14px;
     }
-    @keyframes fadeSlideIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    @keyframes fadeOut {
-      to {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-    }
-  </style>
+  
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
 </head>
 <body>
 <div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
-  <div class="overlay-wrapper">
+  <div class="overlay-wrapper" style="position: absolute; left: 1484px; top: 183px;">
     <div class="header-row">
       <div class="rank">#</div>
       <div style="width: 26px;"></div>
@@ -121,27 +127,24 @@
       <div class="kills">FIN</div>
       <div class="status-icons">STATUS</div>
     </div>
-    <div id="debug-msg" style="color: red; font-size: 16px;"></div>
     <div id="overlay"></div>
   </div>
 
-  <!-- Firebase v9 -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
     const firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
       databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "team-overlay",
-      storageBucket: "team-overlay.appspot.com",
+      storageBucket: "team-overlay.firebasestorage.app",
       messagingSenderId: "751537440201",
       appId: "1:751537440201:web:ee16879d25632d4bb1d418"
     };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     const icons = {
       alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
@@ -157,37 +160,15 @@
       return iconsArr;
     }
 
-    let prevData = {};
-
+    
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
-      const debug = document.getElementById("debug-msg");
-      const teamsArray = Object.entries(data || {}).map(([key, team]) => {
-        const logoUrl = (team.logo || "").startsWith("http")
-          ? team.logo
-          : "https://alive-status-new-m1la.vercel.app/" + team.logo;
-
-        return {
-          id: key,
-          name: team.name || key,
-          kills: Number(team.kills || 0),
-          aliveCount: Number(team.aliveCount || 0),
-          logo: logoUrl
-        };
-      }).sort((a, b) => b.kills - a.kills || b.aliveCount - a.aliveCount);
-
+      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills);
       wrapper.innerHTML = "";
-      if (teamsArray.length === 0) {
-        debug.innerText = "⚠️ No team data found.";
-        return;
-      } else {
-        debug.innerText = "";
-      }
 
       teamsArray.slice(0, 16).forEach((team, idx) => {
         const row = document.createElement("div");
         row.className = "team";
-        row.setAttribute("data-id", team.id);
         const delay = idx * 100;
         row.innerHTML = `<div class='team-content' style="opacity: 0; animation: fadeSlideIn 0.4s ease ${delay}ms forwards;">
           <div class="rank">#${idx + 1}</div>
@@ -195,24 +176,15 @@
           <div class="team-name">${team.name}</div>
           <div class="kills">${team.kills}</div>
           <div class="status-icons">
-            ${createStatusIcons(team.aliveCount).map(icon => `<img src="\${icon}">`).join("")}
+            ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
           </div>
         </div>`;
         wrapper.appendChild(row);
       });
-
-      prevData = {};
-      teamsArray.forEach(team => {
-        prevData[team.id] = { kills: team.kills, aliveCount: team.aliveCount };
-      });
     }
 
-    onValue(ref(db, "teams"), (snapshot) => {
-      const data = snapshot.val();
-      console.log("Firebase v9 data:", data);
-      renderOverlay(data);
-    }, (error) => {
-      document.getElementById("debug-msg").innerText = "❌ Firebase error: " + error.message;
+db.ref("teams").on("value", snapshot => {
+      renderOverlay(snapshot.val());
     });
   </script>
 </div>
