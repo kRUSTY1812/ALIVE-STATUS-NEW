@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Alive Status Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: transparent;
+    }
+    .container {
+      position: absolute;
+      width: 827px;
+      height: 404px;
+      left: 0;
+      top: 0;
+      font-family: sans-serif;
+    }
+    .header {
+      background: rgba(0, 0, 0, 0.6);
+      color: #ffda6a;
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 16px;
+      font-weight: bold;
+    }
+    .team-row {
+      background: url('plank-alive.png') no-repeat center center;
+      background-size: cover;
+      color: #eac278;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>#</div>
+      <div>TEAM</div>
+      <div>FIN</div>
+      <div>STATUS</div>
+    </div>
+    <!-- Team rows dynamically generated here -->
+  </div>
+</body>
+</html>
