@@ -106,7 +106,9 @@
   
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translateY(10px); }
-  100% { opacity: 1; transform: translateY(0); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
 }
 
 </style>
@@ -154,50 +156,29 @@
       return iconsArr;
     }
 
-    
-    let prevData = {};
-
     function renderOverlay(data) {
-      console.clear();
-      console.log("🔥 Incoming Firebase Data:", data);
-
       const wrapper = document.getElementById("overlay");
-      const teamsArray = Object.entries(data || {})
-        .map(([key, team]) => ({ key, ...team }))
-        .sort((a, b) => b.kills - a.kills || b.aliveCount - a.aliveCount);
-
+      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills);
       wrapper.innerHTML = "";
 
       teamsArray.slice(0, 16).forEach((team, idx) => {
-        const prev = prevData[team.key];
-        const changed = !prev || prev.kills !== team.kills || prev.aliveCount !== team.aliveCount;
-
-        console.log("➡️ Row", idx, team.name, changed ? "🔁 Changed" : "✅ Unchanged");
-
         const row = document.createElement("div");
         row.className = "team";
-        row.innerHTML = \'
-          <div class='team-content' style="\${changed ? 'animation: fadeInOut 0.4s ease forwards;' : ''}">
-            <div class="rank">#\${idx + 1}</div>
-            <img class="team-logo" src="\${team.logo}" onerror="this.style.display='none'">
-            <div class="team-name">\${team.name}</div>
-            <div class="kills">\${team.kills}</div>
-            <div class="status-icons">
-              \${createStatusIcons(team.aliveCount).map(icon => \`<img src="\${icon}">\`).join("")}
-            </div>
+        row.style.animation = "fadeInOut 1.8s ease";
+        row.innerHTML = `<div class='team-content'>
+          <div class="rank">#${idx + 1}</div>
+          <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
+          <div class="team-name">${team.name}</div>
+          <div class="kills">${team.kills}</div>
+          <div class="status-icons">
+            ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
           </div>
-        \`;
-
+        `;
         wrapper.appendChild(row);
-      });
-
-      prevData = {};
-      teamsArray.forEach(team => {
-        prevData[team.key] = { kills: team.kills, aliveCount: team.aliveCount };
       });
     }
 
-db.ref("teams").on("value", snapshot => {
+    db.ref("teams").on("value", snapshot => {
       renderOverlay(snapshot.val());
     });
   </script>
