@@ -167,6 +167,7 @@
   }
 
   
+    
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
       const teamsArray = Object.entries(data || {}).sort(([, a], [, b]) => {
@@ -205,11 +206,12 @@
           </div>
         </div>`;
 
-        wrapper.appendChild(newRow);
+        wrapper.insertBefore(newRow, wrapper.children[idx] || null);
       });
 
       previousData = { ...data };
     }
+
 
 
   db.ref("teams").on("value", snapshot => {
