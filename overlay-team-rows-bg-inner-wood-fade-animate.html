@@ -103,7 +103,14 @@
       width: 14px;
       height: 14px;
     }
-  </style>
+  
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(10px); }
+  50% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+</style>
 </head>
 <body>
 <div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
@@ -156,7 +163,7 @@
       teamsArray.slice(0, 16).forEach((team, idx) => {
         const row = document.createElement("div");
         row.className = "team";
-        row.innerHTML = `<div class='team-content'>
+        row.innerHTML = `<div class='team-content' style="animation: fadeInOut 0.4s ease forwards;">
           <div class="rank">#${idx + 1}</div>
           <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
           <div class="team-name">${team.name}</div>
