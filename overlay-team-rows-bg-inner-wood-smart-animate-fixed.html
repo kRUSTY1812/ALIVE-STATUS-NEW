@@ -164,13 +164,16 @@
     
     let prevData = {};
 
+    
+    let prevData = {};
+
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
-      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills || b.aliveCount - a.aliveCount);
+      const teamsArray = Object.entries(data || {}).sort(([, a], [, b]) => b.kills - a.kills || b.aliveCount - a.aliveCount);
       wrapper.innerHTML = "";
 
-      teamsArray.slice(0, 16).forEach((team, idx) => {
-        const prev = prevData[team.name];
+      teamsArray.slice(0, 16).forEach(([key, team], idx) => {
+        const prev = prevData[key];
         const changed = !prev || prev.kills !== team.kills || prev.aliveCount !== team.aliveCount;
 
         const row = document.createElement("div");
@@ -190,10 +193,10 @@
         wrapper.appendChild(row);
       });
 
-      // Update previous data snapshot
+      // Save snapshot
       prevData = {};
-      teamsArray.forEach(team => {
-        prevData[team.name] = { kills: team.kills, aliveCount: team.aliveCount };
+      teamsArray.forEach(([key, team]) => {
+        prevData[key] = { kills: team.kills, aliveCount: team.aliveCount };
       });
     }
 
