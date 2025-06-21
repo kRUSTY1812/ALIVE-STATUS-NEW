@@ -160,6 +160,27 @@
       );
     }
 
+    function createRow(team, idx, animate = false) {
+      const row = document.createElement("div");
+      row.className = "team";
+      if (animate) row.classList.add("animate");
+      row.id = "team-" + team.id;
+
+      const statusIconsHTML = createStatusIcons(team.aliveCount)
+        .map(icon => `<img src="\${icon}">`).join("");
+
+      row.innerHTML = \`
+        <div class='team-content'>
+          <div class="rank">#\${idx + 1}</div>
+          <img class="team-logo" src="\${team.logo}" onerror="this.style.display='none'">
+          <div class="team-name">\${team.name}</div>
+          <div class="kills">\${team.kills}</div>
+          <div class="status-icons">\${statusIconsHTML}</div>
+        </div>\`;
+
+      return row;
+    }
+
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
       const teamArray = Object.entries(data || {}).map(([id, team]) => ({ id, ...team }));
@@ -171,35 +192,40 @@
         return b.aliveCount - a.aliveCount;
       });
 
-      const newHTMLMap = {};
+      const existingMap = {};
+      Array.from(wrapper.children).forEach(child => {
+        existingMap[child.id] = child;
+      });
+
+      // Track updated DOM order
+      const newOrder = [];
 
       teamArray.slice(0, 16).forEach((team, idx) => {
+        const existing = existingMap["team-" + team.id];
         const isChanged = JSON.stringify(lastData[team.id]) !== JSON.stringify(team);
-        const statusIconsHTML = createStatusIcons(team.aliveCount)
-          .map(icon => `<img src="${icon}">`)
-          .join("");
 
-        const row = document.createElement("div");
-        row.className = "team";
-        if (isChanged) row.classList.add("animate");
+        if (existing && !isChanged) {
+          newOrder.push(existing);
+        } else {
+          const newRow = createRow(team, idx, isChanged);
+          newOrder.push(newRow);
+        }
 
-        row.id = "team-" + team.id;
-        row.innerHTML = `
-          <div class='team-content'>
-            <div class="rank">#${idx + 1}</div>
-            <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
-            <div class="team-name">${team.name}</div>
-            <div class="kills">${team.kills}</div>
-            <div class="status-icons">${statusIconsHTML}</div>
-          </div>`;
-
-        newHTMLMap[team.id] = row;
         lastData[team.id] = { ...team };
       });
 
-      // Replace or insert rows
-      wrapper.innerHTML = ""; // for full replacement (necessary only if we switch to keyed DOM diff, keeping for now)
-      Object.values(newHTMLMap).forEach(row => wrapper.appendChild(row));
+      // Patch DOM in correct order without clearing
+      newOrder.forEach((row, idx) => {
+        const existing = wrapper.children[idx];
+        if (existing !== row) {
+          wrapper.insertBefore(row, existing || null);
+        }
+      });
+
+      // Remove any leftover old rows
+      while (wrapper.children.length > newOrder.length) {
+        wrapper.removeChild(wrapper.lastChild);
+      }
     }
 
     db.ref("teams").on("value", snap => renderOverlay(snap.val()));
