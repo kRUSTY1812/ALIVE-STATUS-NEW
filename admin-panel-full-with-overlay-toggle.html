@@ -283,6 +283,20 @@ function pullAliveStatus() {
   });
 }
 
+    
+function pushOverlay() {
+  db.ref("overlayVisible").set(true)
+    .then(() => alert("Overlay set to VISIBLE."))
+    .catch((err) => alert("Error setting overlayVisible: " + err));
+}
+
+function pullOverlay() {
+  db.ref("overlayVisible").set(false)
+    .then(() => alert("Overlay set to HIDDEN."))
+    .catch((err) => alert("Error setting overlayVisible: " + err));
+}
+
+
     function loadTeams() {
       const teamList = document.getElementById("teamList");
       const container = document.getElementById("teamsContainer");
