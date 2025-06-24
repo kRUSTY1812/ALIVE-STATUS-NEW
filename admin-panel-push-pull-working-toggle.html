@@ -222,11 +222,40 @@
     if (data) {
       db.ref("overlayBackup/pushedAliveStatus").set(data, error => {
         if (error) {
-          alert("Failed to push alive status to overlayBackup.");
+          alert("Failed to save overlay data.");
         } else {
-          alert("Alive status PUSHED successfully to overlayBackup!");
+          db.ref("overlayVisible").set(true, err => {
+            if (err) {
+              alert("Data saved but failed to show overlay.");
+            } else {
+              alert("Overlay data pushed and shown!");
+            }
+          });
         }
       });
+    }
+  });
+}
+
+function pullAliveStatus() {
+  db.ref("overlayBackup/pushedAliveStatus").once("value").then(snapshot => {
+    const savedData = snapshot.val();
+    if (savedData) {
+      db.ref("teams").set(savedData, error => {
+        if (error) {
+          alert("Failed to load overlay data.");
+        } else {
+          db.ref("overlayVisible").set(false, err => {
+            if (err) {
+              alert("Data pulled but failed to hide overlay.");
+            } else {
+              alert("Overlay pulled and hidden!");
+            }
+          });
+        }
+      });
+    } else {
+      alert("No saved overlay data found.");
     }
   });
 }
