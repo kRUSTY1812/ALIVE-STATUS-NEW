@@ -117,10 +117,11 @@
 </div>
 
 <div class="tabs">
+<div class="tab" onclick="switchTab('matchData')">Add Match Data</div>
       <div class="tab active" onclick="switchTab('addEdit')">Add / Edit Team</div>
       <div class="tab" onclick="switchTab('updateData')">Update Kills / Alive</div>
-      <div class="tab" onclick="switchTab('pushAlive')">Push Alive Status</div>
-      <div class="tab" onclick="switchTab('pullAlive')">Pull Alive Status</div>
+      
+      
     </div>
 
     <div id="addEdit" class="tab-content active">
@@ -149,7 +150,23 @@
     </div>
       <h2>Update Team Data (Kills & Alive)</h2>
       <div id="teamsContainer"></div>
-    </div>
+    
+<div id="matchData" class="tab-content">
+  <h2>Add Match Data</h2>
+  <div style="margin-bottom: 10px;">
+    <label for="matchSelector">Select Match:</label>
+    <select id="matchSelector" onchange="loadMatchTeams()" style="padding: 6px 12px; font-size: 14px;">
+      <option value="">-- Select Match --</option>
+      <option value="match1">Match 1</option>
+      <option value="match2">Match 2</option>
+      <option value="match3">Match 3</option>
+    </select>
+  </div>
+  <div id="matchTeamsContainer"></div>
+  <button onclick="endMatch()" style="margin-top: 20px; padding: 10px 20px; font-size: 16px; background: #ff5722; color: white; border: none; border-radius: 6px; cursor: pointer;">MATCH END</button>
+</div>
+
+</div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
