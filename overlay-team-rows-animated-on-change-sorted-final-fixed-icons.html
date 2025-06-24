@@ -3,7 +3,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Final Aligned Overlay</title>
+  <title>Sorted Alive Status Overlay</title>
   <style>
     body {
       margin: 0;
@@ -31,13 +31,12 @@
       font-weight: bold;
       font-size: 16px;
       margin-bottom: 6px;
-      
     }
     .header-row .team-name {
-      padding-left: 30px; /* match team-name shift */
+      padding-left: 30px;
     }
     .header-row .kills {
-      transform: translateX(-40px); /* shift FIN column left */
+      transform: translateX(-40px);
     }
     .team {
       display: flex;
@@ -48,18 +47,7 @@
       padding: 4px 6px;
       font-size: 16px;
       background: none;
-      margin-bottom: 0px;
-      
       color: white;
-      opacity: 0;
-      transform: translateY(10px);
-      animation: fadeSlideIn 0.4s ease forwards;
-    }
-    @keyframes fadeSlideIn {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
     }
     .rank {
       width: 28px;
@@ -90,32 +78,29 @@
       gap: 3px;
     }
     .team-content {
-  width: 100%;
-  height: 100%;
-  background: url('assets/wood.png') no-repeat center/cover;
-  display: flex;
-  align-items: center;
-  padding: 0 6px;
-  box-sizing: border-box;
-}
-
-.status-icons img {
+      width: 100%;
+      height: 100%;
+      background: url('assets/wood.png') no-repeat center/cover;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      box-sizing: border-box;
+    }
+    .status-icons img {
       width: 14px;
       height: 14px;
     }
-  
-@keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-</style>
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body>
 <div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
@@ -130,7 +115,6 @@
     <div id="overlay"></div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
@@ -139,7 +123,7 @@
       authDomain: "team-overlay.firebaseapp.com",
       databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "team-overlay",
-      storageBucket: "team-overlay.firebasestorage.app",
+      storageBucket: "team-overlay.appspot.com",
       messagingSenderId: "751537440201",
       appId: "1:751537440201:web:ee16879d25632d4bb1d418"
     };
@@ -160,17 +144,36 @@
       return iconsArr;
     }
 
-    
+    let lastRendered = {};
+
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
-      const teamsArray = Object.values(data || {}).sort((a, b) => b.kills - a.kills);
+      const teamsArray = Object.values(data || {});
+
+      const aliveTeams = teamsArray.filter(t => t.aliveCount > 0);
+      const eliminatedTeams = teamsArray.filter(t => t.aliveCount === 0);
+
+      aliveTeams.sort((a, b) => {
+        if (b.kills !== a.kills) return b.kills - a.kills;
+        return b.aliveCount - a.aliveCount;
+      });
+
+      eliminatedTeams.sort((a, b) => b.kills - a.kills);
+
+      const sortedTeams = [...aliveTeams, ...eliminatedTeams];
       wrapper.innerHTML = "";
 
-      teamsArray.slice(0, 16).forEach((team, idx) => {
+      sortedTeams.slice(0, 16).forEach((team, idx) => {
+        const id = team.name + team.kills + team.aliveCount;
+        const changed = lastRendered[team.name] !== id;
+        lastRendered[team.name] = id;
+
         const row = document.createElement("div");
         row.className = "team";
-        const delay = idx * 100;
-        row.innerHTML = `<div class='team-content' style="opacity: 0; animation: fadeSlideIn 0.4s ease ${delay}ms forwards;">
+
+        const anim = changed ? `style="opacity: 0; animation: fadeSlideIn 0.4s ease ${idx * 100}ms forwards;"` : "";
+
+        row.innerHTML = `<div class='team-content' ${anim}>
           <div class="rank">#${idx + 1}</div>
           <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
           <div class="team-name">${team.name}</div>
@@ -183,7 +186,7 @@
       });
     }
 
-db.ref("teams").on("value", snapshot => {
+    db.ref("teams").on("value", snapshot => {
       renderOverlay(snapshot.val());
     });
   </script>
