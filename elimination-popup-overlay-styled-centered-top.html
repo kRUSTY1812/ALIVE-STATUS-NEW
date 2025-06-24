@@ -3,54 +3,79 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Team Elimination Popup</title>
+  <title>Elimination Popup</title>
   <style>
     body {
       margin: 0;
       padding: 0;
       background: transparent;
+      font-family: 'Arial', sans-serif;
       overflow: hidden;
-      font-family: Arial, sans-serif;
     }
     #eliminationBox {
       position: absolute;
-      top: 30%;
+      top: 20%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background-color: rgba(0, 0, 0, 0.85);
-      border-radius: 12px;
-      padding: 30px;
-      color: white;
-      text-align: center;
-      min-width: 500px;
       display: none;
-      animation: fadeInOut 4s ease-in-out;
+      animation: slideFade 4s ease-in-out;
     }
-    .rank {
-      font-size: 48px;
-      color: gold;
+    .elim-container {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .rank-box {
+      background-color: #ffd500;
+      color: black;
       font-weight: bold;
+      font-size: 22px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 50px;
     }
-    .team-logo {
-      width: 80px;
-      height: 80px;
+    .logo-box {
+      background: white;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-box img {
+      height: 50px;
+      max-width: 80px;
       object-fit: contain;
-      margin: 20px auto;
     }
-    .team-name {
-      font-size: 32px;
-      margin-bottom: 10px;
-    }
-    .eliminated {
-      color: red;
-      font-size: 28px;
+    .elim-bar {
+      background: linear-gradient(to right, #ff4b2b, #ff1100);
+      color: white;
       font-weight: bold;
+      font-size: 24px;
+      padding: 10px 16px;
+      white-space: nowrap;
     }
-    .points, .finishes {
-      font-size: 20px;
-      margin-top: 10px;
+    .stat-bar {
+      background: #ffd500;
+      color: black;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 6px 12px;
     }
-    @keyframes fadeInOut {
+    .stat-bar div {
+      padding: 0 10px;
+    }
+    .stat-bar .divider {
+      color: #555;
+    }
+    @keyframes slideFade {
       0% { opacity: 0; transform: translate(-50%, -60%); }
       10% { opacity: 1; transform: translate(-50%, -50%); }
       90% { opacity: 1; transform: translate(-50%, -50%); }
@@ -60,12 +85,16 @@
 </head>
 <body>
   <div id="eliminationBox">
-    <div class="rank" id="rank">#1</div>
-    <img class="team-logo" id="logo" src="" alt="Team Logo">
-    <div class="team-name" id="name">TEAM NAME</div>
-    <div class="eliminated">ELIMINATED</div>
-    <div class="finishes" id="finishes">5 Finishes</div>
-    <div class="points" id="points">10 Placement Points</div>
+    <div class="elim-container">
+      <div class="rank-box" id="rank">#15</div>
+      <div class="logo-box"><img id="logo" src="" /></div>
+      <div class="elim-bar">ELIMINATED</div>
+    </div>
+    <div class="stat-bar">
+      <div id="finishes">1 FINISHES</div>
+      <div class="divider">|</div>
+      <div id="points">0 PLACE PTS.</div>
+    </div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -86,21 +115,19 @@
 
     const shown = new Set();
     const eliminationOrder = [];
-
-    const placementPoints = [10, 6, 5, 4, 3, 2, 1, 1]; // 1-8
+    const placementPoints = [10, 6, 5, 4, 3, 2, 1, 1];
 
     function showElimination(team, rank) {
       document.getElementById("rank").textContent = `#${rank}`;
       document.getElementById("logo").src = team.logo;
-      document.getElementById("name").textContent = team.name;
-      document.getElementById("finishes").textContent = `${team.kills} Finishes`;
+      document.getElementById("finishes").textContent = `${team.kills} FINISHES`;
 
       const point = rank <= 8 ? placementPoints[rank - 1] : 0;
-      document.getElementById("points").textContent = `${point} Placement Points`;
+      document.getElementById("points").textContent = `${point} PLACE PTS.`;
 
       const box = document.getElementById("eliminationBox");
       box.style.display = "block";
-      box.style.animation = "fadeInOut 4s ease-in-out";
+      box.style.animation = "slideFade 4s ease-in-out";
 
       setTimeout(() => {
         box.style.display = "none";
