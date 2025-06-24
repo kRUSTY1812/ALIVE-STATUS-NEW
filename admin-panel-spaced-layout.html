@@ -1,10 +1,11 @@
 
 <!DOCTYPE html>
+
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
-  <style>
+<meta charset="utf-8"/>
+<title>Admin Panel</title>
+<style>
     body {
       background: #121212;
       color: white;
@@ -109,85 +110,69 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    
+<div class="container">
 <div style="margin-bottom: 20px; display: flex; gap: 20px;">
-  <button style="background-color:#4caf50; color:white; padding:10px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer;" onclick="pushOverlay()">PUSH (Show Overlay)</button>
-  <button style="background-color:#f44336; color:white; padding:10px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer;" onclick="pullOverlay()">PULL (Hide Overlay)</button>
+<button onclick="pushOverlay()" style="background-color:#4caf50; color:white; padding:10px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer;">PUSH (Show Overlay)</button>
+<button onclick="pullOverlay()" style="background-color:#f44336; color:white; padding:10px 20px; font-size:16px; border:none; border-radius:6px; cursor:pointer;">PULL (Hide Overlay)</button>
 </div>
-
 <div class="tabs">
-    
-    
-
-      <div class="tab active" onclick="switchTab('addEdit')">Add / Edit Team</div>
-      <div class="tab" onclick="switchTab('updateData')">Update Kills / Alive</div>
-      
-      
-    </div>
-
-    <div id="addEdit" class="tab-content active">
-      <h2>Add / Edit Team</h2>
-      <div class="form-row">
-        <input type="text" id="newTeamName" placeholder="Team Name">
-        <input type="text" id="newTeamLogo" placeholder="Logo URL">
-        
-      
-      <div class="form-row" id="playerInputs" style="flex-wrap: wrap; gap: 10px;">
-        <input type="text" id="player1" placeholder="Player 1 Name" style="flex: 1; min-width: 200px;">
-        <input type="text" id="player2" placeholder="Player 2 Name" style="flex: 1; min-width: 200px;">
-        <input type="text" id="player3" placeholder="Player 3 Name" style="flex: 1; min-width: 200px;">
-        <input type="text" id="player4" placeholder="Player 4 Name" style="flex: 1; min-width: 200px;">
-      </div>
-
+<div class="tab active" onclick="switchTab('addEdit')">Add / Edit Team</div>
+<div class="tab" onclick="switchTab('updateData')">Update Kills / Alive</div>
+</div>
+<div class="tab-content active" id="addEdit">
+<h2>Add / Edit Team</h2>
+<div class="form-row">
+<input id="newTeamName" placeholder="Team Name" type="text"/>
+<input id="newTeamLogo" placeholder="Logo URL" type="text"/>
+<div class="form-row" id="playerInputs" style="flex-wrap: wrap; gap: 10px;">
+<input id="player1" placeholder="Player 1 Name" style="flex: 1; min-width: 200px;" type="text"/>
+<input id="player2" placeholder="Player 2 Name" style="flex: 1; min-width: 200px;" type="text"/>
+<input id="player3" placeholder="Player 3 Name" style="flex: 1; min-width: 200px;" type="text"/>
+<input id="player4" placeholder="Player 4 Name" style="flex: 1; min-width: 200px;" type="text"/>
+</div>
 <button onclick="addOrUpdateTeam()">Add / Update</button>
-      </div>
-      <div class="playing-teams">
-        <h3>PLAYING TEAMS</h3>
-        <div id="teamList"></div>
-      </div>
-    </div>
-
-    <div id="updateData" class="tab-content">
-    <div id="pushAlive" class="tab-content">
-      <h2>Push Alive Status</h2>
-      <p>This will PUSH current team data to "savedStatus" for later use. <br>vMix overlay reflects current "teams" data.</p>
-      <button onclick="pushAliveStatus()">Push Now</button>
-    </div>
-    <div id="pullAlive" class="tab-content">
-      <h2>Pull Alive Status</h2>
-      <p>This will PULL previously saved data from "savedStatus" and overwrite "teams". <br>vMix overlay will instantly reflect this.</p>
-      <button onclick="pullAliveStatus()">Pull Now</button>
-    </div>
-      <h2>Update Team Data (Kills & Alive)</h2>
+</div>
+<div class="playing-teams">
+<h3>PLAYING TEAMS</h3>
+<div id="teamList"></div>
+</div>
+</div>
+<div class="tab-content" id="updateData">
+<div class="tab-content" id="pushAlive">
+<h2>Push Alive Status</h2>
+<p>This will PUSH current team data to "savedStatus" for later use. <br/>vMix overlay reflects current "teams" data.</p>
+<button onclick="pushAliveStatus()">Push Now</button>
+</div>
+<div class="tab-content" id="pullAlive">
+<h2>Pull Alive Status</h2>
+<p>This will PULL previously saved data from "savedStatus" and overwrite "teams". <br/>vMix overlay will instantly reflect this.</p>
+<button onclick="pullAliveStatus()">Pull Now</button>
+</div>
+<h2>Update Team Data (Kills &amp; Alive)</h2>
 <div style="margin: 10px 0;">
-  <label for="matchSelectorKillsAlive" style="color: white; font-weight: bold;">Select Match:</label>
-  <select id="matchSelectorKillsAlive" onchange="loadMatchDataForKillsAlive()" style="padding: 5px 10px; font-size: 14px; margin-left: 10px;">
-    <option value="">-- Select Match --</option><option value="match1">Match 1</option><option value="match2">Match 2</option><option value="match3">Match 3</option><option value="match4">Match 4</option><option value="match5">Match 5</option><option value="match6">Match 6</option><option value="match7">Match 7</option><option value="match8">Match 8</option><option value="match9">Match 9</option><option value="match10">Match 10</option><option value="match11">Match 11</option><option value="match12">Match 12</option><option value="match13">Match 13</option><option value="match14">Match 14</option><option value="match15">Match 15</option><option value="match16">Match 16</option><option value="match17">Match 17</option><option value="match18">Match 18</option></select>
-  <button onclick="endMatchKillsAlive()" style="margin-left: 15px; padding: 6px 12px; font-size: 14px; background: #e53935; color: white; border: none; border-radius: 4px;">MATCH END</button>
+<label for="matchSelectorKillsAlive" style="color: white; font-weight: bold;">Select Match:</label>
+<select id="matchSelectorKillsAlive" onchange="loadMatchDataForKillsAlive()" style="padding: 5px 10px; font-size: 14px; margin-left: 10px;">
+<option value="">-- Select Match --</option><option value="match1">Match 1</option><option value="match2">Match 2</option><option value="match3">Match 3</option><option value="match4">Match 4</option><option value="match5">Match 5</option><option value="match6">Match 6</option><option value="match7">Match 7</option><option value="match8">Match 8</option><option value="match9">Match 9</option><option value="match10">Match 10</option><option value="match11">Match 11</option><option value="match12">Match 12</option><option value="match13">Match 13</option><option value="match14">Match 14</option><option value="match15">Match 15</option><option value="match16">Match 16</option><option value="match17">Match 17</option><option value="match18">Match 18</option></select>
+<button onclick="endMatchKillsAlive()" style="margin-left: 15px; padding: 6px 12px; font-size: 14px; background: #e53935; color: white; border: none; border-radius: 4px;">MATCH END</button>
 </div>
-
-      <div id="teamsContainer"></div>
-    
-<div id="matchData" class="tab-content">
-  <h2>Add Match Data</h2>
-  <div style="margin-bottom: 10px;">
-    <label for="matchSelector">Select Match:</label>
-    <select id="matchSelector" onchange="loadMatchTeams()" style="padding: 6px 12px; font-size: 14px;">
-      <option value="">-- Select Match --</option>
-      <option value="match1">Match 1</option>
-      <option value="match2">Match 2</option>
-      <option value="match3">Match 3</option>
-    </select>
-  </div>
-  <div id="matchTeamsContainer"></div>
-  <button onclick="endMatch()" style="margin-top: 20px; padding: 10px 20px; font-size: 16px; background: #ff5722; color: white; border: none; border-radius: 6px; cursor: pointer;">MATCH END</button>
+<div id="teamsContainer"></div>
+<div class="tab-content" id="matchData">
+<h2>Add Match Data</h2>
+<div style="margin-bottom: 10px;">
+<label for="matchSelector">Select Match:</label>
+<select id="matchSelector" onchange="loadMatchTeams()" style="padding: 6px 12px; font-size: 14px;">
+<option value="">-- Select Match --</option>
+<option value="match1">Match 1</option>
+<option value="match2">Match 2</option>
+<option value="match3">Match 3</option>
+</select>
 </div>
-
+<div id="matchTeamsContainer"></div>
+<button onclick="endMatch()" style="margin-top: 20px; padding: 10px 20px; font-size: 16px; background: #ff5722; color: white; border: none; border-radius: 6px; cursor: pointer;">MATCH END</button>
 </div>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+</div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
 function endMatchKillsAlive() {
   const matchId = document.getElementById("matchSelectorKillsAlive").value;
   if (!matchId) return alert("⚠️ Please select a match first.");
@@ -219,7 +204,7 @@ function endMatchKillsAlive() {
     };
 
     fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
-      method: "POST",
+  method: "POST",
       body: JSON.stringify(payload)
     }).then(res => {
       alert("✅ Match data sent to Google Sheet!");
@@ -231,7 +216,7 @@ function endMatchKillsAlive() {
 }
 
 </script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
 
 
   if (!matchId) return alert("⚠️ Please select a match first.");
@@ -275,7 +260,7 @@ function endMatchKillsAlive() {
 }
 
 </script>
-  <script>
+<script>
     const firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
@@ -318,7 +303,8 @@ function endMatchKillsAlive() {
         ],
         logo,
         kills: 0,
-        aliveCount: 4
+        aliveCount: 4,
+        killsArray: [0, 0, 0, 0]
       });
 
       document.getElementById("newTeamName").value = "";
@@ -475,6 +461,18 @@ function loadTeams() {
           let playerStatusControls = "";
           const players = team.players || ["Player 1", "Player 2", "Player 3", "Player 4"];
           const statusArray = team.status || [1, 1, 1, 1];
+          const killsArray = team.killsArray || [0, 0, 0, 0];
+          let playerKillControls = "";
+          players.forEach((player, index) => {
+            playerKillControls += `
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="min-width: 80px;">${player}</span>
+                <button onclick="updatePlayerKill('${id}', ${index}, -1)">-</button>
+                <span id="playerKill_${id}_${index}">${killsArray[index]}</span>
+                <button onclick="updatePlayerKill('${id}', ${index}, 1)">+</button>
+              </div>`;
+          });
+
 
           players.forEach((player, index) => {
             playerStatusControls += `
@@ -486,24 +484,32 @@ function loadTeams() {
               </div>`;
           });
 
+          
+          
           row.innerHTML = `
-            <div class="team-info">
+            <div class="team-info" style="display: flex; align-items: center; gap: 15px; min-width: 180px;">
               <img class="team-logo" src="${team.logo}" />
               <div class="team-name">${team.name}</div>
-            </div>
-            <div class="control-block">
-              <div class="control">
+              <div class="control" style="display: flex; align-items: center; gap: 8px;">
                 <label>Kills:</label>
                 <button onclick="updateTeamData('${id}', 'kills', -1)">-</button>
                 <span class="value">${team.kills}</span>
                 <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
               </div>
-              <div class="control" style="flex-direction: column; align-items: flex-start;">
-                <label>Players:</label>
+            </div>
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; margin-top: 12px; gap: 30px;">
+              <div class="control" style="flex-direction: column; align-items: flex-start; min-width: 220px;">
+                <label style="font-weight: bold; margin-bottom: 5px;">Player Kills:</label>
+                ${playerKillControls}
+              </div>
+              <div class="control" style="flex-direction: column; align-items: flex-start; min-width: 220px;">
+                <label style="font-weight: bold; margin-bottom: 5px;">Player Status:</label>
                 ${playerStatusControls}
               </div>
             </div>
           `;
+
+
     
           container.appendChild(row);
         });
@@ -564,7 +570,6 @@ function endMatchKillsAlive() {
 }
 
 </script>
-
 <script>
 function loadMatchTeams() {
   const matchId = document.getElementById("matchSelector").value;
@@ -673,8 +678,6 @@ function endMatchKillsAlive() {
 }
 
 </script>
-
-
 <script>
 function loadMatchDataForKillsAlive() {
   const matchId = document.getElementById("matchSelectorKillsAlive").value;
@@ -692,6 +695,18 @@ function loadMatchDataForKillsAlive() {
           let playerStatusControls = "";
           const players = team.players || ["Player 1", "Player 2", "Player 3", "Player 4"];
           const statusArray = team.status || [1, 1, 1, 1];
+          const killsArray = team.killsArray || [0, 0, 0, 0];
+          let playerKillControls = "";
+          players.forEach((player, index) => {
+            playerKillControls += `
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="min-width: 80px;">${player}</span>
+                <button onclick="updatePlayerKill('${id}', ${index}, -1)">-</button>
+                <span id="playerKill_${id}_${index}">${killsArray[index]}</span>
+                <button onclick="updatePlayerKill('${id}', ${index}, 1)">+</button>
+              </div>`;
+          });
+
 
           players.forEach((player, index) => {
             playerStatusControls += `
@@ -794,21 +809,14 @@ function endMatchKillsAlive() {
 }
 
 </script>
-
-
-<div id="Push Alive Status" class="tab-content">
-  <h2>Push Alive Status</h2>
-  <button onclick="db.ref('overlayStatus').set(true); alert('✅ Overlay pushed IN');">Push IN</button>
+<div class="tab-content" id="Push Alive Status">
+<h2>Push Alive Status</h2>
+<button onclick="db.ref('overlayStatus').set(true); alert('✅ Overlay pushed IN');">Push IN</button>
 </div>
-<div id="Pull Alive Status" class="tab-content">
-  <h2>Pull Alive Status</h2>
-  <button onclick="db.ref('overlayStatus').set(false); alert('✅ Overlay pulled OUT');">Pull OUT</button>
+<div class="tab-content" id="Pull Alive Status">
+<h2>Pull Alive Status</h2>
+<button onclick="db.ref('overlayStatus').set(false); alert('✅ Overlay pulled OUT');">Pull OUT</button>
 </div>
-
-
-
-
-
 <script>
 function endMatchKillsAlive() {
   const matchId = document.getElementById("matchSelectorKillsAlive").value;
@@ -872,7 +880,24 @@ function endMatchKillsAlive() {
     });
   });
 }
-</script>
 
+function updatePlayerKill(id, index, delta) {
+  const killsRef = db.ref("teams/" + id + "/killsArray");
+
+  killsRef.once("value").then(snapshot => {
+    let kills = snapshot.val() || [0, 0, 0, 0];
+    kills[index] = Math.max(0, (kills[index] || 0) + delta);
+    db.ref("teams/" + id + "/killsArray").set(kills);
+
+    // Update DOM
+    document.getElementById(`playerKill_${id}_${index}`).textContent = kills[index];
+
+    // Update total team kills
+    const teamTotalKills = kills.reduce((a, b) => a + b, 0);
+    db.ref("teams/" + id + "/kills").set(teamTotalKills);
+  });
+}
+
+</script>
 </body>
 </html>
