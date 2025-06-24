@@ -131,7 +131,16 @@
       <div class="form-row">
         <input type="text" id="newTeamName" placeholder="Team Name">
         <input type="text" id="newTeamLogo" placeholder="Logo URL">
-        <button onclick="addOrUpdateTeam()">Add / Update</button>
+        
+      
+      <div class="form-row" id="playerInputs" style="flex-wrap: wrap; gap: 10px;">
+        <input type="text" id="player1" placeholder="Player 1 Name" style="flex: 1; min-width: 200px;">
+        <input type="text" id="player2" placeholder="Player 2 Name" style="flex: 1; min-width: 200px;">
+        <input type="text" id="player3" placeholder="Player 3 Name" style="flex: 1; min-width: 200px;">
+        <input type="text" id="player4" placeholder="Player 4 Name" style="flex: 1; min-width: 200px;">
+      </div>
+
+<button onclick="addOrUpdateTeam()">Add / Update</button>
       </div>
       <div class="playing-teams">
         <h3>PLAYING TEAMS</h3>
@@ -301,6 +310,13 @@ function endMatchKillsAlive() {
       db.ref("teams/" + id).set({
         name,
         logo,
+        players: [
+          document.getElementById("player1").value,
+          document.getElementById("player2").value,
+          document.getElementById("player3").value,
+          document.getElementById("player4").value
+        ],
+        logo,
         kills: 0,
         aliveCount: 4
       });
@@ -409,7 +425,26 @@ function pullOverlay() {
 }
 
 
-    function loadTeams() {
+    
+
+function updatePlayerStatus(id, index, delta) {
+  const statusRef = db.ref("teams/" + id + "/status");
+
+  statusRef.once("value").then(snapshot => {
+    let status = snapshot.val() || [0, 0, 0, 0];
+    status[index] = Math.max(0, Math.min(1, (status[index] || 0) + delta));
+    db.ref("teams/" + id + "/status").set(status);
+
+    // Update DOM
+    document.getElementById(`playerStatus_${id}_${index}`).textContent = status[index];
+
+    // Calculate new aliveCount and update it
+    const aliveCount = status.filter(s => s === 1).length;
+    db.ref("teams/" + id + "/aliveCount").set(aliveCount);
+  });
+}
+
+function loadTeams() {
       const teamList = document.getElementById("teamList");
       const container = document.getElementById("teamsContainer");
       db.ref("teams").on("value", snapshot => {
@@ -433,8 +468,24 @@ function pullOverlay() {
 
           teamList.appendChild(entry);
 
+          
           const row = document.createElement("div");
           row.className = "team-row";
+
+          let playerStatusControls = "";
+          const players = team.players || ["Player 1", "Player 2", "Player 3", "Player 4"];
+          const statusArray = team.status || [1, 1, 1, 1];
+
+          players.forEach((player, index) => {
+            playerStatusControls += `
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="min-width: 80px;">${player}</span>
+                <button onclick="updatePlayerStatus('${id}', ${index}, -1)">-</button>
+                <span id="playerStatus_${id}_${index}">${statusArray[index]}</span>
+                <button onclick="updatePlayerStatus('${id}', ${index}, 1)">+</button>
+              </div>`;
+          });
+
           row.innerHTML = `
             <div class="team-info">
               <img class="team-logo" src="${team.logo}" />
@@ -447,14 +498,13 @@ function pullOverlay() {
                 <span class="value">${team.kills}</span>
                 <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
               </div>
-              <div class="control">
-                <label>Alive:</label>
-                <button onclick="updateTeamData('${id}', 'aliveCount', -1)">-</button>
-                <span class="value">${team.aliveCount}</span>
-                <button onclick="updateTeamData('${id}', 'aliveCount', 1)">+</button>
+              <div class="control" style="flex-direction: column; align-items: flex-start;">
+                <label>Players:</label>
+                ${playerStatusControls}
               </div>
             </div>
           `;
+    
           container.appendChild(row);
         });
       });
@@ -635,26 +685,43 @@ function loadMatchDataForKillsAlive() {
   db.ref("matchData/" + matchId).once("value").then(snapshot => {
     const data = snapshot.val() || {};
     Object.entries(data).forEach(([id, team]) => {
-      const row = document.createElement("div");
-      row.className = "team-row";
-      row.innerHTML = `
-        <div class="team-info">
-          <img class="team-logo" src="${team.logo}" />
-          <div class="team-name">${team.name}</div>
-        </div>
-        <div class="control-block">
-          <div class="control">
-            <button onclick="updateMatchKills('${matchId}', '${id}', -1)">–</button>
-            <span id="kills_${id}">${team.kills || 0}</span>
-            <button onclick="updateMatchKills('${matchId}', '${id}', 1)">+</button>
-          </div>
-          <div class="control">
-            <button onclick="updateMatchAlive('${matchId}', '${id}', -1)">–</button>
-            <span id="alive_${id}">${team.alive || 0}</span>
-            <button onclick="updateMatchAlive('${matchId}', '${id}', 1)">+</button>
-          </div>
-        </div>
-      `;
+      
+          const row = document.createElement("div");
+          row.className = "team-row";
+
+          let playerStatusControls = "";
+          const players = team.players || ["Player 1", "Player 2", "Player 3", "Player 4"];
+          const statusArray = team.status || [1, 1, 1, 1];
+
+          players.forEach((player, index) => {
+            playerStatusControls += `
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="min-width: 80px;">${player}</span>
+                <button onclick="updatePlayerStatus('${id}', ${index}, -1)">-</button>
+                <span id="playerStatus_${id}_${index}">${statusArray[index]}</span>
+                <button onclick="updatePlayerStatus('${id}', ${index}, 1)">+</button>
+              </div>`;
+          });
+
+          row.innerHTML = `
+            <div class="team-info">
+              <img class="team-logo" src="${team.logo}" />
+              <div class="team-name">${team.name}</div>
+            </div>
+            <div class="control-block">
+              <div class="control">
+                <label>Kills:</label>
+                <button onclick="updateTeamData('${id}', 'kills', -1)">-</button>
+                <span class="value">${team.kills}</span>
+                <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
+              </div>
+              <div class="control" style="flex-direction: column; align-items: flex-start;">
+                <label>Players:</label>
+                ${playerStatusControls}
+              </div>
+            </div>
+          `;
+    
       container.appendChild(row);
     });
   });
