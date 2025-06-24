@@ -223,8 +223,53 @@ function endMatchKillsAlive() {
 
 </script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
+<script>
 function endMatchKillsAlive() {
   const matchId = document.getElementById("matchSelectorKillsAlive").value;
+  if (!matchId) return alert("⚠️ Please select a match first.");
+
+  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
+    const matchTeams = snapshot.val() || {};
+    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
+
+    const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
+      id,
+      name: team.name,
+      kills: team.kills || 0,
+      alive: team.alive || 0
+    }));
+
+    teamsArray.sort((a, b) => {
+      if (b.kills !== a.kills) return b.kills - a.kills;
+      return b.alive - a.alive;
+    });
+
+    teamsArray.forEach((team, index) => {
+      team.position = index + 1;
+      team.placementPoints = team.position <= 8 ? placementPoints[team.position - 1] : 0;
+      team.totalPoints = team.kills + team.placementPoints;
+    });
+
+    const payload = {
+      matchNo: matchId,
+      teams: teamsArray
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.text())
+    .then(text => {
+      alert("✅ Response from Google Sheet:\n" + text);
+    })
+    .catch(err => {
+      alert("❌ Failed to send to Google Sheet:\n" + err);
+    });
+  });
+}
+</script>
+
   if (!matchId) return alert("⚠️ Please select a match first.");
 
   firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
@@ -723,6 +768,53 @@ function endMatchKillsAlive() {
   <h2>Pull Alive Status</h2>
   <button onclick="db.ref('overlayStatus').set(false); alert('✅ Overlay pulled OUT');">Pull OUT</button>
 </div>
+
+
+<script>
+function endMatchKillsAlive() {
+  const matchId = document.getElementById("matchSelectorKillsAlive").value;
+  if (!matchId) return alert("⚠️ Please select a match first.");
+
+  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
+    const matchTeams = snapshot.val() || {};
+    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
+    const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
+      id,
+      name: team.name,
+      kills: team.kills || 0,
+      alive: team.alive || 0
+    }));
+
+    teamsArray.sort((a, b) => {
+      if (b.kills !== a.kills) return b.kills - a.kills;
+      return b.alive - a.alive;
+    });
+
+    teamsArray.forEach((team, index) => {
+      team.position = index + 1;
+      team.placementPoints = team.position <= 8 ? placementPoints[team.position - 1] : 0;
+      team.totalPoints = team.kills + team.placementPoints;
+    });
+
+    const payload = {
+      matchNo: matchId,
+      teams: teamsArray
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.text())
+    .then(text => {
+      alert("✅ Response from Google Sheet:\n" + text);
+    })
+    .catch(err => {
+      alert("❌ Failed to send to Google Sheet:\n" + err);
+    });
+  });
+}
+</script>
 
 </body>
 </html>
