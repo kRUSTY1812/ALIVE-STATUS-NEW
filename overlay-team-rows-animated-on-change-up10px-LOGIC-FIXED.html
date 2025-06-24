@@ -166,42 +166,53 @@
     return !prev || prev.kills !== next.kills || prev.aliveCount !== next.aliveCount || prev.logo !== next.logo || prev.name !== next.name;
   }
 
-  function renderOverlay(data) {
-    const wrapper = document.getElementById("overlay");
-    const teamsArray = Object.entries(data || {}).sort(([, a], [, b]) => {
-      if (a.kills !== b.kills) return b.kills - a.kills;
-      return b.aliveCount - a.aliveCount;
-    });
+  
+    
+    function renderOverlay(data) {
+      const wrapper = document.getElementById("overlay");
+      const teamsArray = Object.entries(data || {}).sort(([, a], [, b]) => {
+        // Sort: first by kills, then by aliveCount
+        if (a.kills !== b.kills) return b.kills - a.kills;
+        if (a.aliveCount !== b.aliveCount) return b.aliveCount - a.aliveCount;
+        return 0;
+      });
 
-    teamsArray.slice(0, 16).forEach(([key, team], idx) => {
-      const prevTeam = previousData[key];
-      const changed = hasTeamChanged(prevTeam, team);
+      // Move eliminated teams (aliveCount = 0) to the bottom
+      const aliveTeams = teamsArray.filter(([, team]) => team.aliveCount > 0);
+      const eliminatedTeams = teamsArray.filter(([, team]) => team.aliveCount === 0);
+      const finalSortedTeams = [...aliveTeams, ...eliminatedTeams];
 
-      let row = document.querySelector(`[data-key='${key}']`);
-      if (row && !changed) return;
+      finalSortedTeams.slice(0, 16).forEach(([key, team], idx) => {
+        const prevTeam = previousData[key];
+        const changed = hasTeamChanged(prevTeam, team);
 
-      if (row) row.remove();
+        let row = document.querySelector(`[data-key='${key}']`);
+        if (row && !changed) return;
 
-      const newRow = document.createElement("div");
-      newRow.className = "team";
-      newRow.setAttribute("data-key", key);
+        if (row) row.remove();
 
-      const delay = idx * 100;
-      newRow.innerHTML = `<div class='team-content' style="opacity: 0; animation: fadeSlideIn 0.4s ease ${delay}ms forwards;">
-        <div class="rank">#${idx + 1}</div>
-        <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
-        <div class="team-name">${team.name}</div>
-        <div class="kills">${team.kills}</div>
-        <div class="status-icons">
-          ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
-        </div>
-      </div>`;
+        const newRow = document.createElement("div");
+        newRow.className = "team";
+        newRow.setAttribute("data-key", key);
 
-      wrapper.appendChild(newRow);
-    });
+        const delay = idx * 100;
+        newRow.innerHTML = `<div class='team-content' style="opacity: 0; animation: fadeSlideIn 0.4s ease ${delay}ms forwards;">
+          <div class="rank">#${idx + 1}</div>
+          <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
+          <div class="team-name">${team.name}</div>
+          <div class="kills">${team.kills}</div>
+          <div class="status-icons">
+            ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
+          </div>
+        </div>`;
 
-    previousData = { ...data };
-  }
+        wrapper.insertBefore(newRow, wrapper.children[idx] || null);
+      });
+
+      previousData = { ...data };
+    }
+
+
 
   db.ref("teams").on("value", snapshot => {
     renderOverlay(snapshot.val());
