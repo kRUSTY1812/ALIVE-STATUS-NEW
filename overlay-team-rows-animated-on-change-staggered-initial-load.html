@@ -145,6 +145,7 @@
     }
 
     let lastRendered = {};
+let firstLoad = true;
 
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
@@ -171,7 +172,7 @@
         const row = document.createElement("div");
         row.className = "team";
 
-        const anim = changed ? `style="opacity: 0; animation: fadeSlideIn 0.3s ease forwards;"` : `style="opacity: 0; animation: fadeSlideIn 0.4s ease ${idx * 100}ms forwards;"`;
+        const anim = (firstLoad || changed) ? `style="opacity: 0; animation: fadeSlideIn 0.4s ease ${idx * 100}ms forwards;"` : "";
 
         row.innerHTML = `<div class='team-content' ${anim}>
           <div class="rank">#${idx + 1}</div>
@@ -188,6 +189,7 @@
 
     db.ref("teams").on("value", snapshot => {
       renderOverlay(snapshot.val());
+      firstLoad = false;
     });
   </script>
 </div>
