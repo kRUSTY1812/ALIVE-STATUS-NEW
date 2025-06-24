@@ -113,6 +113,8 @@
     <div class="tabs">
       <div class="tab active" onclick="switchTab('addEdit')">Add / Edit Team</div>
       <div class="tab" onclick="switchTab('updateData')">Update Kills / Alive</div>
+      <div class="tab" onclick="switchTab('pushAlive')">Push Alive Status</div>
+      <div class="tab" onclick="switchTab('pullAlive')">Pull Alive Status</div>
     </div>
 
     <div id="addEdit" class="tab-content active">
@@ -129,6 +131,16 @@
     </div>
 
     <div id="updateData" class="tab-content">
+    <div id="pushAlive" class="tab-content">
+      <h2>Push Alive Status</h2>
+      <p>This will PUSH current team data to "savedStatus" for later use. <br>vMix overlay reflects current "teams" data.</p>
+      <button onclick="pushAliveStatus()">Push Now</button>
+    </div>
+    <div id="pullAlive" class="tab-content">
+      <h2>Pull Alive Status</h2>
+      <p>This will PULL previously saved data from "savedStatus" and overwrite "teams". <br>vMix overlay will instantly reflect this.</p>
+      <button onclick="pullAliveStatus()">Pull Now</button>
+    </div>
       <h2>Update Team Data (Kills & Alive)</h2>
       <div id="teamsContainer"></div>
     </div>
@@ -203,6 +215,38 @@
         ref.set(val);
       });
     }
+
+    function pushAliveStatus() {
+  db.ref("teams").once("value").then(snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      db.ref("overlayBackup/pushedAliveStatus").set(data, error => {
+        if (error) {
+          alert("Failed to push alive status to overlayBackup.");
+        } else {
+          alert("Alive status PUSHED successfully to overlayBackup!");
+        }
+      });
+    }
+  });
+}
+
+function pullAliveStatus() {
+  db.ref("overlayBackup/pushedAliveStatus").once("value").then(snapshot => {
+    const savedData = snapshot.val();
+    if (savedData) {
+      db.ref("teams").set(savedData, error => {
+        if (error) {
+          alert("Failed to pull alive status from overlayBackup.");
+        } else {
+          alert("Alive status PULLED successfully and applied to vMix overlay!");
+        }
+      });
+    } else {
+      alert("No saved pushedAliveStatus found in overlayBackup.");
+    }
+  });
+}
 
     function loadTeams() {
       const teamList = document.getElementById("teamList");
