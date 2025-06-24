@@ -173,19 +173,67 @@
 </div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+
 function endMatchKillsAlive() {
   const matchId = document.getElementById("matchSelectorKillsAlive").value;
   if (!matchId) return alert("⚠️ Please select a match first.");
 
-  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
-    const matchTeams = snapshot.val() || {};
+  firebase.database().ref("teams").once("value").then(snapshot => {
+    const liveData = snapshot.val() || {};
+    const teamsArray = [];
+
+    for (const [id, team] of Object.entries(liveData)) {
+      const name = team.name || "Unknown";
+      const kills = team.kills || 0;
+      const logo = team.logo || "";
+      const alive = team.aliveCount || 0;
+      const players = team.players || ["", "", "", ""];
+      const playerKills = team.killsArray || [0, 0, 0, 0];
+
+      teamsArray.push({
+        id,
+        name,
+        kills,
+        logo,
+        alive,
+        players,
+        playerKills
+      });
+    }
+
+    // Sort and assign placement
+    teamsArray.sort((a, b) => {
+      if (b.kills !== a.kills) return b.kills - a.kills;
+      return b.alive - a.alive;
+    });
+
     const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
-    const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
-      id,
-      name: team.name,
-      kills: team.kills || 0,
-      alive: team.alive || 0
-    }));
+    teamsArray.forEach((team, index) => {
+      team.position = index + 1;
+      team.placementPoints = index < 8 ? placementPoints[index] : 0;
+      team.totalPoints = team.kills + team.placementPoints;
+    });
+
+    const payload = {
+      matchNo: matchId,
+      teams: teamsArray
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.text())
+    .then(txt => {
+      alert("✅ Exported to Google Sheet successfully!");
+    })
+    .catch(err => {
+      alert("❌ Failed to send to Google Sheet");
+      console.error(err);
+    });
+  });
+}
+));
 
     teamsArray.sort((a, b) => {
       if (b.kills !== a.kills) return b.kills - a.kills;
