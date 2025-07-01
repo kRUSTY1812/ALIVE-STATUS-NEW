@@ -154,7 +154,9 @@
 <select id="matchSelectorKillsAlive" onchange="loadMatchDataForKillsAlive()" style="padding: 5px 10px; font-size: 14px; margin-left: 10px;">
 <option value="">-- Select Match --</option><option value="match1">Match 1</option><option value="match2">Match 2</option><option value="match3">Match 3</option><option value="match4">Match 4</option><option value="match5">Match 5</option><option value="match6">Match 6</option><option value="match7">Match 7</option><option value="match8">Match 8</option><option value="match9">Match 9</option><option value="match10">Match 10</option><option value="match11">Match 11</option><option value="match12">Match 12</option><option value="match13">Match 13</option><option value="match14">Match 14</option><option value="match15">Match 15</option><option value="match16">Match 16</option><option value="match17">Match 17</option><option value="match18">Match 18</option></select>
 <button onclick="endMatchKillsAlive()" style="margin-left: 15px; padding: 6px 12px; font-size: 14px; background: #e53935; color: white; border: none; border-radius: 4px;">MATCH END</button>
-<button onclick="resetAllTeamData()" style="margin-left: 15px; padding: 6px 12px; font-size: 14px; background: #9e9e9e; color: white; border: none; border-radius: 4px;">RESET DATA</button>
+<button onclick="resetAllTeamData()" style="margin-left: 10px; padding: 6px 12px; font-size: 14px; background: #9e9e9e; color: white; border: none; border-radius: 4px;">RESET</button>
+<button onclick="resetCurrentMatch()" style="margin-left: 10px; padding: 6px 12px; font-size: 14px; background: #607d8b; color: white; border: none; border-radius: 4px;">RESET THIS MATCH</button>
+
 </div>
 <div id="teamsContainer"></div>
 <div class="tab-content" id="matchData">
@@ -788,6 +790,41 @@ function updatePlayerKill(id, index, delta) {
 }
 
 </script>
+
+<script>
+function resetAllTeamData() {
+  if (!confirm("Are you sure you want to reset ALL kills and player data?")) return;
+
+  db.ref("teams").once("value").then(snapshot => {
+    const teams = snapshot.val() || {};
+    Object.keys(teams).forEach(id => {
+      db.ref(`teams/${id}/kills`).set(0);
+      db.ref(`teams/${id}/aliveCount`).set(4);
+      db.ref(`teams/${id}/killsArray`).set([0, 0, 0, 0]);
+      db.ref(`teams/${id}/status`).set([1, 1, 1, 1]);
+    });
+    alert("✅ All team data has been reset.");
+  });
+}
+
+function resetCurrentMatch() {
+  const matchId = document.getElementById("matchSelectorKillsAlive").value;
+  if (!matchId) return alert("⚠️ Please select a match first.");
+
+  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
+    const matchTeams = snapshot.val() || {};
+
+    Object.keys(matchTeams).forEach(id => {
+      firebase.database().ref(`matchData/${matchId}/${id}/kills`).set(0);
+      firebase.database().ref(`matchData/${matchId}/${id}/alive`).set(4);
+      firebase.database().ref(`matchData/${matchId}/${id}/killsArray`).set([0, 0, 0, 0]);
+      firebase.database().ref(`matchData/${matchId}/${id}/status`).set([1, 1, 1, 1]);
+    });
+
+    alert("✅ Selected match data has been reset.");
+  });
+}
+</script>
 </body>
 </html>
 
@@ -854,23 +891,4 @@ function endMatchKillsAlive() {
   });
 }
 
-</script>
-
-<script>
-function resetAllTeamData() {
-  if (!confirm("⚠️ This will reset all kills, player kills, statuses, and alive counts. Continue?")) return;
-
-  firebase.database().ref("teams").once("value").then(snapshot => {
-    const teams = snapshot.val() || {};
-    for (const [id, team] of Object.entries(teams)) {
-      firebase.database().ref("teams/" + id).update({
-        kills: 0,
-        aliveCount: 4,
-        killsArray: [0, 0, 0, 0],
-        status: [1, 1, 1, 1]
-      });
-    }
-    alert("✅ All team data reset successfully.");
-  });
-}
 </script>
