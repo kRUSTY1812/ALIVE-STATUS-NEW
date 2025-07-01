@@ -174,32 +174,6 @@
 </div>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
 
-function endMatchKillsAlive() {
-  const matchId = document.getElementById("matchSelectorKillsAlive").value;
-  if (!matchId) return alert("⚠️ Please select a match first.");
-
-  firebase.database().ref("teams").once("value").then(snapshot => {
-    const liveData = snapshot.val() || {};
-    const teamsArray = [];
-
-    for (const [id, team] of Object.entries(liveData)) {
-      const name = team.name || "Unknown";
-      const kills = team.kills || 0;
-      const logo = team.logo || "";
-      const alive = team.aliveCount || 0;
-      const players = team.players || ["", "", "", ""];
-      const playerKills = team.killsArray || [0, 0, 0, 0];
-
-      teamsArray.push({
-        id,
-        name,
-        kills,
-        logo,
-        alive,
-        players,
-        playerKills
-      });
-    }
 
     // Sort and assign placement
     teamsArray.sort((a, b) => {
@@ -575,47 +549,6 @@ function loadTeams() {
     
     loadTeams();
   
-function endMatchKillsAlive() {
-  const matchId = document.getElementById("matchSelectorKillsAlive").value;
-  if (!matchId) return alert("⚠️ Please select a match first.");
-
-  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
-    const matchTeams = snapshot.val() || {};
-    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
-    const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
-      id,
-      name: team.name,
-      kills: team.kills || 0,
-      alive: team.alive || 0
-    }));
-
-    teamsArray.sort((a, b) => {
-      if (b.kills !== a.kills) return b.kills - a.kills;
-      return b.alive - a.alive;
-    });
-
-    teamsArray.forEach((team, index) => {
-      team.position = index + 1;
-      team.placementPoints = team.position <= 8 ? placementPoints[team.position - 1] : 0;
-      team.totalPoints = team.kills + team.placementPoints;
-    });
-
-    const payload = {
-      matchNo: matchId,
-      teams: teamsArray
-    };
-
-    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(res => {
-      alert("✅ Match data sent to Google Sheet!");
-    }).catch(err => {
-      alert("❌ Failed to send to Sheet");
-      console.error(err);
-    });
-  });
-}
 
 </script>
 <script>
@@ -683,47 +616,6 @@ function endMatch() {
   });
 }
 
-function endMatchKillsAlive() {
-  const matchId = document.getElementById("matchSelectorKillsAlive").value;
-  if (!matchId) return alert("⚠️ Please select a match first.");
-
-  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
-    const matchTeams = snapshot.val() || {};
-    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
-    const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
-      id,
-      name: team.name,
-      kills: team.kills || 0,
-      alive: team.alive || 0
-    }));
-
-    teamsArray.sort((a, b) => {
-      if (b.kills !== a.kills) return b.kills - a.kills;
-      return b.alive - a.alive;
-    });
-
-    teamsArray.forEach((team, index) => {
-      team.position = index + 1;
-      team.placementPoints = team.position <= 8 ? placementPoints[team.position - 1] : 0;
-      team.totalPoints = team.kills + team.placementPoints;
-    });
-
-    const payload = {
-      matchNo: matchId,
-      teams: teamsArray
-    };
-
-    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(res => {
-      alert("✅ Match data sent to Google Sheet!");
-    }).catch(err => {
-      alert("❌ Failed to send to Sheet");
-      console.error(err);
-    });
-  });
-}
 
 </script>
 <script>
@@ -807,54 +699,7 @@ function updateMatchAlive(matchId, teamId, delta) {
   db.ref(`matchData/${matchId}/${teamId}/alive`).set(newVal);
 }
 
-function endMatchKillsAlive() {
-  const matchId = document.getElementById("matchSelectorKillsAlive").value;
-  if (!matchId) return alert("Select a match first.");
-  alert("✅ Match " + matchId + " data finalized!");
-  // Optional: Trigger export to Google Sheet here
-}
 
-function endMatchKillsAlive() {
-  const matchId = document.getElementById("matchSelectorKillsAlive").value;
-  if (!matchId) return alert("⚠️ Please select a match first.");
-
-  firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
-    const matchTeams = snapshot.val() || {};
-    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
-    const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
-      id,
-      name: team.name,
-      kills: team.kills || 0,
-      alive: team.alive || 0
-    }));
-
-    teamsArray.sort((a, b) => {
-      if (b.kills !== a.kills) return b.kills - a.kills;
-      return b.alive - a.alive;
-    });
-
-    teamsArray.forEach((team, index) => {
-      team.position = index + 1;
-      team.placementPoints = team.position <= 8 ? placementPoints[team.position - 1] : 0;
-      team.totalPoints = team.kills + team.placementPoints;
-    });
-
-    const payload = {
-      matchNo: matchId,
-      teams: teamsArray
-    };
-
-    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    }).then(res => {
-      alert("✅ Match data sent to Google Sheet!");
-    }).catch(err => {
-      alert("❌ Failed to send to Sheet");
-      console.error(err);
-    });
-  });
-}
 
 </script>
 <div class="tab-content" id="Push Alive Status">
@@ -866,11 +711,6 @@ function endMatchKillsAlive() {
 <button onclick="db.ref('overlayStatus').set(false); alert('✅ Overlay pulled OUT');">Pull OUT</button>
 </div>
 <script>
-function endMatchKillsAlive() {
-  const matchId = document.getElementById("matchSelectorKillsAlive").value;
-  if (!matchId) return alert("⚠️ Please select a match first.");
-
-  // Step 1: Copy live team data to matchData/{matchId}
   firebase.database().ref("teams").once("value").then(snapshot => {
     const liveData = snapshot.val() || {};
     const matchData = {};
@@ -949,3 +789,66 @@ function updatePlayerKill(id, index, delta) {
 </script>
 </body>
 </html>
+
+<script>
+
+function endMatchKillsAlive() {
+  const matchId = document.getElementById("matchSelectorKillsAlive").value;
+  if (!matchId) return alert("⚠️ Please select a match first.");
+
+  firebase.database().ref("teams").once("value").then(snapshot => {
+    const liveData = snapshot.val() || {};
+    const teamsArray = [];
+
+    for (const [id, team] of Object.entries(liveData)) {
+      const name = team.name || "Unknown";
+      const kills = team.kills || 0;
+      const logo = team.logo || "";
+      const alive = team.aliveCount || 0;
+      const players = team.players || ["", "", "", ""];
+      const playerKills = team.killsArray || [0, 0, 0, 0];
+
+      teamsArray.push({
+        id,
+        name,
+        kills,
+        logo,
+        alive,
+        players,
+        playerKills
+      });
+    }
+
+    teamsArray.sort((a, b) => {
+      if (b.kills !== a.kills) return b.kills - a.kills;
+      return b.alive - a.alive;
+    });
+
+    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
+    teamsArray.forEach((team, index) => {
+      team.position = index + 1;
+      team.placementPoints = index < 8 ? placementPoints[index] : 0;
+      team.totalPoints = team.kills + team.placementPoints;
+    });
+
+    const payload = {
+      matchNo: matchId,
+      teams: teamsArray
+    };
+
+    fetch("https://script.google.com/macros/s/AKfycbygJN0COk0N6ooaSGabaAg3F-4V4_97I6cFSkJmRK-XqtMkymCS_wEQ6vKdyY0wljnMQw/exec", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.text())
+    .then(txt => {
+      alert("✅ Exported with player names and kills.");
+    })
+    .catch(err => {
+      alert("❌ Failed to export");
+      console.error(err);
+    });
+  });
+}
+
+</script>
