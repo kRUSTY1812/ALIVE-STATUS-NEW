@@ -175,38 +175,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
 
 
-    // Sort and assign placement
-    teamsArray.sort((a, b) => {
-      if (b.kills !== a.kills) return b.kills - a.kills;
-      return b.alive - a.alive;
-    });
-
-    const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
-    teamsArray.forEach((team, index) => {
-      team.position = index + 1;
-      team.placementPoints = index < 8 ? placementPoints[index] : 0;
-      team.totalPoints = team.kills + team.placementPoints;
-    });
-
-    const payload = {
-      matchNo: matchId,
-      teams: teamsArray
-    };
-
-    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
-      method: "POST",
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.text())
-    .then(txt => {
-      alert("✅ Exported to Google Sheet successfully!");
-    })
-    .catch(err => {
-      alert("❌ Failed to send to Google Sheet");
-      console.error(err);
-    });
-  });
-}
 ));
 
     teamsArray.sort((a, b) => {
@@ -225,7 +193,7 @@
       teams: teamsArray
     };
 
-    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
+    fetch("https://script.google.com/macros/s/AKfycbzmegDxRYUNkzjsyY2YfCGkc92i-0h4thfcrw_B8015afhcGbAh0KWYF0Ciz7_f888PUA/exec", {
   method: "POST",
       body: JSON.stringify(payload)
     }).then(res => {
@@ -269,7 +237,7 @@
       teams: teamsArray
     };
 
-    fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
+    fetch("https://script.google.com/macros/s/AKfycbzmegDxRYUNkzjsyY2YfCGkc92i-0h4thfcrw_B8015afhcGbAh0KWYF0Ciz7_f888PUA/exec", {
       method: "POST",
       body: JSON.stringify(payload)
     }).then(res => {
@@ -355,6 +323,13 @@
           val = Math.max(0, Math.min(max, val));
         }
         ref.set(val);
+
+    // Update kills display in DOM if applicable
+    if (key === "kills") {
+      const el = document.getElementById(`teamKills_${id}`);
+      if (el) el.textContent = val;
+    }
+    
       });
     }
 
@@ -515,7 +490,7 @@ function loadTeams() {
               <div class="control" style="display: flex; align-items: center; gap: 8px;">
                 <label>Kills:</label>
                 <button onclick="updateTeamData('${id}', 'kills', -1)">-</button>
-                <span class="value">${team.kills}</span>
+                <span id="teamKills_${id}" class="value">${team.kills}</span>
                 <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
               </div>
             </div>
@@ -549,6 +524,7 @@ function loadTeams() {
     
     loadTeams();
   
+
 
 </script>
 <script>
@@ -617,6 +593,7 @@ function endMatch() {
 }
 
 
+
 </script>
 <script>
 function loadMatchDataForKillsAlive() {
@@ -667,7 +644,7 @@ function loadMatchDataForKillsAlive() {
               <div class="control">
                 <label>Kills:</label>
                 <button onclick="updateTeamData('${id}', 'kills', -1)">-</button>
-                <span class="value">${team.kills}</span>
+                <span id="teamKills_${id}" class="value">${team.kills}</span>
                 <button onclick="updateTeamData('${id}', 'kills', 1)">+</button>
               </div>
               <div class="control" style="flex-direction: column; align-items: flex-start;">
@@ -701,6 +678,8 @@ function updateMatchAlive(matchId, teamId, delta) {
 
 
 
+
+
 </script>
 <div class="tab-content" id="Push Alive Status">
 <h2>Push Alive Status</h2>
@@ -711,63 +690,7 @@ function updateMatchAlive(matchId, teamId, delta) {
 <button onclick="db.ref('overlayStatus').set(false); alert('✅ Overlay pulled OUT');">Pull OUT</button>
 </div>
 <script>
-  firebase.database().ref("teams").once("value").then(snapshot => {
-    const liveData = snapshot.val() || {};
-    const matchData = {};
 
-    Object.entries(liveData).forEach(([id, team]) => {
-      matchData[id] = {
-        name: team.name,
-        kills: team.kills || 0,
-        alive: team.aliveCount || 0,
-        logo: team.logo || ""
-      };
-    });
-
-    firebase.database().ref("matchData/" + matchId).set(matchData).then(() => {
-      // Step 2: Read it back, sort, calculate points, and send to Google Sheet
-      firebase.database().ref("matchData/" + matchId).once("value").then(snapshot => {
-        const matchTeams = snapshot.val() || {};
-        const placementPoints = [15, 12, 10, 8, 6, 4, 2, 1];
-
-        const teamsArray = Object.entries(matchTeams).map(([id, team]) => ({
-          id,
-          name: team.name,
-          kills: team.kills || 0,
-          alive: team.alive || 0
-        }));
-
-        teamsArray.sort((a, b) => {
-          if (b.kills !== a.kills) return b.kills - a.kills;
-          return b.alive - a.alive;
-        });
-
-        teamsArray.forEach((team, index) => {
-          team.position = index + 1;
-          team.placementPoints = team.position <= 8 ? placementPoints[team.position - 1] : 0;
-          team.totalPoints = team.kills + team.placementPoints;
-        });
-
-        const payload = {
-          matchNo: matchId,
-          teams: teamsArray
-        };
-
-        fetch("https://script.google.com/macros/s/AKfycbxLp1wUp-sycFhA-ozGB8I5VTfCXbydANAlGw6uAyGJvjx3ZCSeSsvoEUsMm_7Q393b5g/exec", {
-          method: "POST",
-          body: JSON.stringify(payload)
-        })
-        .then(res => res.text())
-        .then(text => {
-          alert("✅ Sent to Google Sheet:\n" + text);
-        })
-        .catch(err => {
-          alert("❌ Failed to send to Google Sheet:\n" + err);
-        });
-      });
-    });
-  });
-}
 
 function updatePlayerKill(id, index, delta) {
   const killsRef = db.ref("teams/" + id + "/killsArray");
@@ -787,11 +710,6 @@ function updatePlayerKill(id, index, delta) {
 }
 
 </script>
-</body>
-</html>
-
-
-
 <script>
 
 function endMatchKillsAlive() {
@@ -854,3 +772,5 @@ function endMatchKillsAlive() {
 }
 
 </script>
+</body>
+</html>
