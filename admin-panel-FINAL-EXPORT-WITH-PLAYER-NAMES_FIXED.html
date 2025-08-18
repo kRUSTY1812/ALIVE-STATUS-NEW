@@ -261,6 +261,46 @@
       appId: "1:751537440201:web:ee16879d25632d4bb1d418"
     };
     firebase.initializeApp(firebaseConfig);
+
+function pushAliveStatus() {
+  db.ref("teams").once("value").then(snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      db.ref("overlayBackup/pushedAliveStatus").set(data, (err) => {
+        if (err) {
+          alert("❌ Failed to save overlay data.");
+        } else {
+          db.ref("overlayVisible").set(true).then(() => {
+            alert("✅ Overlay data pushed and overlay set to VISIBLE.");
+          }).catch((e)=>alert("⚠️ Saved data, but failed to set overlay visible: " + e));
+        }
+      });
+    } else {
+      alert("⚠️ No team data found to push.");
+    }
+  });
+}
+
+function pullAliveStatus() {
+  db.ref("overlayBackup/pushedAliveStatus").once("value").then(snapshot => {
+    const savedData = snapshot.val();
+    if (savedData) {
+      db.ref("teams").set(savedData, (err) => {
+        if (err) {
+          alert("❌ Failed to restore teams from backup.");
+        } else {
+          db.ref("overlayVisible").set(false).then(() => {
+            alert("✅ Overlay pulled from backup and set to HIDDEN.");
+          }).catch((e)=>alert("⚠️ Restored data, but failed to hide overlay: " + e));
+        }
+      });
+    } else {
+      alert("⚠️ No saved overlay data found.");
+    }
+  });
+}
+
+
     const db = firebase.database();
 
     let currentEditId = null;
@@ -333,66 +373,8 @@
       });
     }
 
-    function pushAliveStatus() {
-  db.ref("teams").once("value").then(snapshot => {
-    const data = snapshot.val();
-    if (data) {
-      db.ref("overlayBackup/pushedAliveStatus").set(data, error => {
-        if (error) {
-          alert("Failed to save overlay data.");
-        } else {
-          db.ref("overlayVisible").set(true, err => {
-            if (err) {
-              alert("Data saved but failed to show overlay.");
-            } else {
-              alert("Overlay data pushed and shown!");
-            }
-          });
-        }
-      });
-    }
-  });
-}
+    
 
-function pullAliveStatus() {
-  db.ref("overlayBackup/pushedAliveStatus").once("value").then(snapshot => {
-    const savedData = snapshot.val();
-    if (savedData) {
-      db.ref("teams").set(savedData, error => {
-        if (error) {
-          alert("Failed to load overlay data.");
-        } else {
-          db.ref("overlayVisible").set(false, err => {
-            if (err) {
-              alert("Data pulled but failed to hide overlay.");
-            } else {
-              alert("Overlay pulled and hidden!");
-            }
-          });
-        }
-      });
-    } else {
-      alert("No saved overlay data found.");
-    }
-  });
-}
-
-function pullAliveStatus() {
-  db.ref("overlayBackup/pushedAliveStatus").once("value").then(snapshot => {
-    const savedData = snapshot.val();
-    if (savedData) {
-      db.ref("teams").set(savedData, error => {
-        if (error) {
-          alert("Failed to pull alive status from overlayBackup.");
-        } else {
-          alert("Alive status PULLED successfully and applied to vMix overlay!");
-        }
-      });
-    } else {
-      alert("No saved pushedAliveStatus found in overlayBackup.");
-    }
-  });
-}
 
     
 function pushOverlay() {
@@ -683,11 +665,11 @@ function updateMatchAlive(matchId, teamId, delta) {
 </script>
 <div class="tab-content" id="Push Alive Status">
 <h2>Push Alive Status</h2>
-<button onclick="db.ref('overlayStatus').set(true); alert('✅ Overlay pushed IN');">Push IN</button>
+<button onclick="pushOverlay();">Push IN</button>
 </div>
 <div class="tab-content" id="Pull Alive Status">
 <h2>Pull Alive Status</h2>
-<button onclick="db.ref('overlayStatus').set(false); alert('✅ Overlay pulled OUT');">Pull OUT</button>
+<button onclick="pullOverlay();">Pull OUT</button>
 </div>
 <script>
 
