@@ -148,7 +148,6 @@
         const anim = changed ? `style="opacity:0; animation: fadeSlideIn 0.3s ease forwards;"` : "";
         row.innerHTML = `
           <div class="team-content" ${anim}>
-            <div class="rank">#${idx + 1}</div>
             <img class="team-logo" src="${team.logo||''}" onerror="this.style.display='none'">
             <div class="team-name">${team.name||''}</div>
             <div class="kills">${team.kills||0}</div>
