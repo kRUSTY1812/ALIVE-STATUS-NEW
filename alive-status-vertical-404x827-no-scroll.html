@@ -2,23 +2,25 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status — Panel 1920x1080 (Fit, No Scroll)</title>
+  <title>Alive Status — Vertical 404x827 (No Scroll)</title>
   <style>
     body { margin:0; background:transparent; font-family: Arial, sans-serif; }
+    /* Full-screen stage for easy absolute positioning */
     .overlay-wrapper{
       position:absolute; left:0; top:0;
       width:1920px; height:1080px; background:none; padding:0; border-radius:0;
     }
 
-    /* Panel size matches screenshot */
+    /* Correct panel: WIDTH 404, HEIGHT 827 at X:1484, Y:183 */
     .alive-panel{
       position:absolute;
-      left:1519px; top:253px;
-      width:827px; height:404px;
-      overflow:hidden;
+      left:1484px; top:183px;
+      width:404px; height:827px;
+      overflow:hidden;  /* clean edges */
+      pointer-events:none; /* safe for vMix */
     }
 
-    /* Header unchanged (full-size) */
+    /* Header (labels box) */
     .header-row{
       position:absolute; left:0; top:0;
       width:265px; height:20px;
@@ -26,25 +28,21 @@
       color:yellow; font-weight:bold; font-size:14px; z-index:2;
     }
     .header-col{ position:absolute; text-align:center; }
+    /* Exact header label boxes & coordinates */
     .header-col.squads{ left:0px;   top:0px; width:67px;  height:20px; line-height:20px; }
     .header-col.finish{ left:136px; top:2px; width:53px;  height:18px; line-height:18px; }
     .header-col.alive { left:217px; top:0px; width:48px;  height:18px; line-height:18px; }
 
-    /* Rows viewport under header */
-    .rows-wrap{
-      position:absolute; left:0; top:28px; width:366px; height:376px; overflow:hidden;
+    /* Rows area right under header; tall enough for all rows */
+    .rows{
+      position:absolute; left:0; top:24px;  /* header 20 + small gap */
+      width:366px; height:799px;           /* fits 16 rows with 1px gaps */
+      overflow:hidden;
     }
 
-    /* Scale inner content so 16 rows (800px tall) fit into 376px -> scale ≈ 0.47 */
-    .rows-scale{
-      transform: scale(0.47);
-      transform-origin: top left;
-      width:366px;                     /* keep intrinsic width for children */
-    }
-
-    /* Unscaled row geometry (original sizes) */
+    /* Row geometry per PSD */
     .team{ position:relative; width:366px; height:48px; }
-    .team + .team{ margin-top:2px; }
+    .team + .team{ margin-top:1px; } /* 1px gap so 16 rows fit */
 
     .team-content{
       position:absolute; inset:0;
@@ -53,11 +51,13 @@
       animation-duration:0.3s; animation-fill-mode:forwards;
     }
 
-    .rank{ position:absolute; left:6px;  top:14px; width:24px; height:20px; text-align:right; }
+    .rank{ position:absolute; left:6px; top:14px; width:24px; height:20px; text-align:right; }
     .team-logo{ position:absolute; left:31px; top:5px; width:40px; height:40px; object-fit:contain; }
     .team-name{
-      position:absolute; left:76px; top:17px; width:105px; height:25px; line-height:25px;
-      overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:19px; color:#eac278;
+      position:absolute; left:76px; top:17px;
+      width:105px; height:25px; line-height:25px;
+      overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
+      font-size:19px; color:#eac278;
     }
     .kills{ position:absolute; left:219px; top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
     .status-icons{ position:absolute; left:267px; top:14px; display:flex; gap:4px; }
@@ -75,17 +75,12 @@
           <div class="header-col finish">FINISH</div>
           <div class="header-col alive">ALIVE</div>
         </div>
-
-        <!-- Scaled rows -->
-        <div class="rows-wrap">
-          <div id="rowsScale" class="rows-scale">
-            <div id="overlay"></div>
-          </div>
-        </div>
+        <div id="overlay" class="rows"></div>
       </div>
     </div>
   </div>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
@@ -151,7 +146,7 @@
             <div class="team-name">${team.name||''}</div>
             <div class="kills">${team.kills||0}</div>
             <div class="status-icons">
-              ${createStatusIcons(team.aliveCount||0).map(src => `<img src="\${src}" alt="">`).join("")}
+              ${createStatusIcons(team.aliveCount||0).map(src => `<img src="${src}" alt="">`).join("")}
             </div>
           </div>`;
         wrapper.appendChild(row);
