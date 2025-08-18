@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alive Status — No Scrollbar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Remove all scrollbars */
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      overflow: hidden;           /* ✅ no scrollbars */
+      width: 100%;
+      height: 100%;
+      font-family: 'Montserrat', sans-serif;
+    }
+
+    /* 1920x1080 stage */
+    .stage {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      background: transparent;
+      overflow: hidden;           /* clip anything outside the stage */
+    }
+
+    /* Vertical panel: 404x827 at X=1519, Y=253 (keep as in your layout) */
+    .alive-panel {
+      position: absolute;
+      left: 1519px;
+      top: 253px;
+      width: 404px;
+      height: 827px;
+      background: transparent;
+      overflow: hidden;           /* keep panel clean, still no scrollbars */
+    }
+
+    /* Header black bar (panel-relative: matches stage 1609,264) */
+    .header {
+      position: absolute;
+      left: 90px;                 /* 1609 - 1519 */
+      top: 11px;                  /*  264 -  253 */
+      width: 323px;
+      height: 23px;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      box-sizing: border-box;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Rows start (panel-relative: matches stage 1554,288) */
+    .rows {
+      position: absolute;
+      left: 35px;                 /* 1554 - 1519 */
+      top: 35px;                  /*  288 -  253 */
+      width: 366px;
+    }
+
+    /* Wooden plank row (fixed box, no flex) */
+    .team {
+      position: relative;
+      width: 366px;
+      height: 48px;
+      margin: 0 0 1px 0;
+    }
+
+    .team-content {
+      position: absolute;
+      inset: 0;
+      background: url('assets/wood.png') no-repeat center/cover, #5a3e22; /* wood bg + fallback */
+      color: #fff;
+      box-sizing: border-box;
+    }
+
+    .team-logo  { position:absolute; left:31px; top:5px;  width:40px; height:40px; object-fit:contain; }
+    .team-name  { position:absolute; left:76px; top:17px; width:105px; height:25px; line-height:25px;
+                  font-size:18.99px; font-weight:700; text-transform:uppercase; color:#eac278;
+                  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .kills      { position:absolute; left:219px; top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
+    .status-icons { position:absolute; left:267px; top:14px; display:flex; gap:4px; }
+    .status-icons img { width:14px; height:14px; }
+
+    @keyframes fadeSlideIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div id="overlayRoot" class="alive-panel" style="display:block;">
+      <!-- Header -->
+      <div class="header">
+        <div>Squad</div><div>Finish</div><div>Alive</div>
+      </div>
+
+      <!-- Rows list -->
+      <div id="rows" class="rows"></div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    // Firebase config (same as your project)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
+      authDomain: "team-overlay.firebaseapp.com",
+      databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "team-overlay",
+      storageBucket: "team-overlay.appspot.com",
+      messagingSenderId: "751537440201",
+      appId: "1:751537440201:web:ee16879d25632d4bb1d418"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Toggle visibility
+    const overlayRoot = document.getElementById('overlayRoot');
+    db.ref('overlayVisible').on('value', snap => {
+      overlayRoot.style.display = snap.val() ? 'block' : 'none';
+    });
+
+    const ICONS = {
+      alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
+      dead:  "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
+    };
+
+    function makeIcons(aliveCount=0){
+      const arr = [];
+      for(let i=0;i<4;i++){ arr.push(i < (aliveCount||0) ? ICONS.alive : ICONS.dead); }
+      return arr;
+    }
+
+    // Remove '#' by default; set to true if you want numeric rank shown
+    const SHOW_RANK = false;
+    let lastRendered = {};
+
+    function render(data){
+      const container = document.getElementById('rows');
+      const teams = Object.values(data || {});
+
+      const aliveTeams = teams.filter(t => (t.aliveCount||0) > 0);
+      const eliminatedTeams = teams.filter(t => (t.aliveCount||0) === 0);
+
+      aliveTeams.sort((a,b)=> (b.kills||0)-(a.kills||0) || (b.aliveCount||0)-(a.aliveCount||0));
+      eliminatedTeams.sort((a,b)=> (b.kills||0)-(a.kills||0));
+      const sorted = [...aliveTeams, ...eliminatedTeams];
+
+      container.innerHTML = "";
+      sorted.slice(0,16).forEach((team, idx) => {
+        const key = (team.name||'') + '|' + (team.kills||0) + '|' + (team.aliveCount||0);
+        const changed = lastRendered[team.name||idx] !== key;
+        lastRendered[team.name||idx] = key;
+
+        const row = document.createElement('div');
+        row.className = 'team';
+        row.innerHTML = `
+          <div class="team-content" ${changed ? 'style="opacity:0; animation: fadeSlideIn .25s ease forwards;"' : ''}>
+            ${SHOW_RANK ? `<div class="rank">${idx+1}</div>` : ''}
+            <img class="team-logo" src="${team.logo||''}" onerror="this.style.display='none'">
+            <div class="team-name">${(team.name||'').toString()}</div>
+            <div class="kills">${team.kills||0}</div>
+            <div class="status-icons">
+              ${makeIcons(team.aliveCount||0).map(src=>`<img src="${src}" alt="">`).join('')}
+            </div>
+          </div>`;
+        container.appendChild(row);
+      });
+    }
+
+    db.ref('teams').on('value', snap => render(snap.val()));
+  </script>
+</body>
+</html>
