@@ -2,90 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status — Clean Wood, No Scroll</title>
+  <title>Alive Status — Native Wood (No Zoom, No Scroll)</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    /* Remove all scrollbars */
+    :root{
+      --row-w: 366px;   /* will be updated to wood.png natural width */
+      --row-h: 48px;    /* will be updated to wood.png natural height */
+      --shift-x: 0px;   /* = (row-w - 366px) to keep columns aligned */
+    }
     html, body {
-      margin: 0; padding: 0;
-      background: transparent;
-      overflow: hidden;
-      width: 100%; height: 100%;
-      font-family: 'Montserrat', sans-serif;
+      margin: 0; padding: 0; background: transparent; overflow: hidden;
+      width: 100%; height: 100%; font-family: 'Montserrat', sans-serif;
     }
+    .stage { position:relative; width:1920px; height:1080px; overflow:hidden; background:transparent; }
+    .alive-panel { position:absolute; left:1519px; top:253px; width:404px; height:827px; overflow:hidden; background:transparent; }
 
-    /* 1920x1080 stage */
-    .stage {
-      position: relative;
-      width: 1920px; height: 1080px;
-      background: transparent;
-      overflow: hidden;
-    }
-
-    /* Vertical panel: 404x827 at X=1519, Y=253 */
-    .alive-panel {
-      position: absolute;
-      left: 1519px; top: 253px;
-      width: 404px; height: 827px;
-      background: transparent;
-      overflow: hidden; /* keep panel tidy */
-    }
-
-    /* Header black bar (panel-relative: 1609,264 -> 90,11) */
+    /* Header (panel-relative 1609,264 -> 90,11) */
     .header {
-      position: absolute;
-      left: 90px; top: 11px;
-      width: 323px; height: 23px;
-      background: rgba(0,0,0,0.6);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 10px; box-sizing: border-box;
-      color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase;
+      position:absolute; left:90px; top:11px; width:323px; height:23px;
+      background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:space-between;
+      padding:0 10px; box-sizing:border-box; color:#fff; font-size:14px; font-weight:700; text-transform:uppercase;
     }
 
-    /* Rows start (panel-relative: 1554,288 -> 35,35) */
-    .rows {
-      position: absolute;
-      left: 35px; top: 35px;
-      width: 366px;
-    }
+    /* Rows start (panel-relative 1554,288 -> 35,35) */
+    .rows { position:absolute; left:35px; top:35px; width:var(--row-w); }
 
-    /* Wooden plank row (fixed box, exact-fit background) */
-    .team {
-      position: relative;
-      width: 366px; height: 48px;
-      margin: 0; /* no seams between rows */
-    }
-    .team + .team { margin-top: 0; }
+    /* Wooden plank row */
+    .team { position:relative; width:var(--row-w); height:var(--row-h); margin:0; }
+    .team + .team{ margin-top:0; }
 
-    .team-content {
-      position: absolute; inset: 0;
-      background: url('assets/wood.png') no-repeat left center, #5a3e22; /* wood + fallback */
-      background-size: 100% 100%; /* exact fit (no crop/zoom) */
-      color: #fff; box-sizing: border-box;
+    /* Put the actual wood image element so there is NO CSS zoom/crop */
+    .wood-bg{
+      position:absolute; inset:0; width:100%; height:100%; object-fit:fill; /* container is native size, so no distortion */
+      z-index:0;
     }
+    .team-content{ position:absolute; inset:0; z-index:1; color:#fff; box-sizing:border-box; }
 
-    /* Element positions inside plank */
-    .team-logo  { position:absolute; left:31px; top:5px;  width:40px; height:40px; object-fit:contain; }
-    .team-name  { position:absolute; left:76px; top:17px; width:105px; height:25px; line-height:25px;
+    /* Element positions inside plank (shifted if the plank is wider than 366) */
+    .team-logo  { position:absolute; left:calc(31px + var(--shift-x)); top:5px;  width:40px; height:40px; object-fit:contain; }
+    .team-name  { position:absolute; left:calc(76px + var(--shift-x)); top:17px; width:105px; height:25px; line-height:25px;
                   font-size:18.99px; font-weight:700; text-transform:uppercase; color:#eac278;
                   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .kills      { position:absolute; left:219px; top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
-    .status-icons { position:absolute; left:267px; top:14px; display:flex; gap:4px; }
+    .kills      { position:absolute; left:calc(219px + var(--shift-x)); top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
+    .status-icons { position:absolute; left:calc(267px + var(--shift-x)); top:14px; display:flex; gap:4px; }
     .status-icons img { width:14px; height:14px; }
 
-    /* Optional: change animation on updates */
     @keyframes fadeSlideIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
   </style>
 </head>
 <body>
   <div class="stage">
     <div id="overlayRoot" class="alive-panel" style="display:block;">
-      <!-- Header -->
-      <div class="header">
-        <div>Squad</div><div>Finish</div><div>Alive</div>
-      </div>
-
-      <!-- Rows list -->
+      <div class="header"><div>Squad</div><div>Finish</div><div>Alive</div></div>
       <div id="rows" class="rows"></div>
     </div>
   </div>
@@ -106,12 +74,29 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Toggle visibility from DB
     const overlayRoot = document.getElementById('overlayRoot');
     db.ref('overlayVisible').on('value', snap => {
       overlayRoot.style.display = snap.val() ? 'block' : 'none';
     });
 
+    // 1) Detect native size of wood.png and set CSS variables so there is ZERO zoom.
+    (function fitWoodToNative(){
+      const img = new Image();
+      img.onload = () => {
+        const w = img.naturalWidth;
+        const h = img.naturalHeight;
+        // Update CSS vars
+        document.documentElement.style.setProperty('--row-w', w + 'px');
+        document.documentElement.style.setProperty('--row-h', h + 'px');
+        document.documentElement.style.setProperty('--shift-x', (w - 366) + 'px');
+        // Also update rows container width to match
+        const rows = document.getElementById('rows');
+        if (rows) rows.style.width = w + 'px';
+      };
+      img.src = 'assets/wood.png';
+    })();
+
+    // 2) Icons for alive/dead
     const ICONS = {
       alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
       dead:  "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
@@ -122,7 +107,7 @@
       return arr;
     }
 
-    const SHOW_RANK = false; // leave rank column hidden
+    const SHOW_RANK = false;
     let lastRendered = {};
 
     function render(data){
@@ -145,6 +130,7 @@
         const row = document.createElement('div');
         row.className = 'team';
         row.innerHTML = `
+          <img class="wood-bg" src="assets/wood.png" alt="wood">
           <div class="team-content" ${changed ? 'style="opacity:0; animation: fadeSlideIn .25s ease forwards;"' : ''}>
             ${SHOW_RANK ? `<div class="rank">${idx+1}</div>` : ''}
             <img class="team-logo" src="${team.logo||''}" onerror="this.style.display='none'">
