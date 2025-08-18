@@ -2,138 +2,93 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status — Fixed Panel 1920x1080</title>
+  <title>Alive Status — Panel 1920x1080 (Fit, No Scroll)</title>
   <style>
-    /* Full-screen stage wrapper (kept under overlayRoot for Firebase show/hide) */
     body { margin:0; background:transparent; font-family: Arial, sans-serif; }
     .overlay-wrapper{
       position:absolute; left:0; top:0;
-      width:1920px; height:1080px;
-      background:none; padding:0; border-radius:0;
+      width:1920px; height:1080px; background:none; padding:0; border-radius:0;
     }
 
-    /* The fixed alive-status panel (matches your screenshot placement) */
+    /* Panel size matches screenshot */
     .alive-panel{
       position:absolute;
-      left:1519px;   /* X on 1920x1080 */
-      top:253px;     /* Y on 1920x1080 */
-      width:827px;
-      height:404px;
-      overflow:hidden;     /* keep rows clipped to panel */
-      pointer-events:none; /* safe for vMix overlay */
+      left:1519px; top:253px;
+      width:827px; height:404px;
+      overflow:hidden;
     }
 
-    /* HEADER (black 60% opacity) */
+    /* Header unchanged (full-size) */
     .header-row{
-      position:absolute;
-      left:0; top:0;
+      position:absolute; left:0; top:0;
       width:265px; height:20px;
       background:rgba(0,0,0,0.6);
-      color:yellow; font-weight:bold; font-size:14px;
-      z-index:2;
+      color:yellow; font-weight:bold; font-size:14px; z-index:2;
     }
     .header-col{ position:absolute; text-align:center; }
-
-    /* Your exact header specs & coordinates */
     .header-col.squads{ left:0px;   top:0px; width:67px;  height:20px; line-height:20px; }
     .header-col.finish{ left:136px; top:2px; width:53px;  height:18px; line-height:18px; }
     .header-col.alive { left:217px; top:0px; width:48px;  height:18px; line-height:18px; }
 
-    /* ROWS container starts just under header */
-    .rows{
-  position:absolute;
-  left:0; 
-  top:28px;             /* just below header */
-  width:366px;
-  height:376px;         /* 404 total panel height - 28 header */
-  overflow-y:auto;      /* enable scroll */
-}
+    /* Rows viewport under header */
+    .rows-wrap{
+      position:absolute; left:0; top:28px; width:366px; height:376px; overflow:hidden;
+    }
 
-.rows::-webkit-scrollbar{
-  width:0; height:0;    /* hides the scrollbar (optional) */
-}
+    /* Scale inner content so 16 rows (800px tall) fit into 376px -> scale ≈ 0.47 */
+    .rows-scale{
+      transform: scale(0.47);
+      transform-origin: top left;
+      width:366px;                     /* keep intrinsic width for children */
+    }
 
-
-
-    /* One team row = 366x48 plank, stacked vertically */
+    /* Unscaled row geometry (original sizes) */
     .team{ position:relative; width:366px; height:48px; }
-    .team + .team{ margin-top:2px; } /* small gap like the ref */
+    .team + .team{ margin-top:2px; }
 
     .team-content{
       position:absolute; inset:0;
       background:url('assets/wood.png') no-repeat center/cover;
-      box-sizing:border-box;
-      color:#fff;
+      box-sizing:border-box; color:#fff;
       animation-duration:0.3s; animation-fill-mode:forwards;
     }
 
-    /* Rank (optional, left side) */
-    .rank{
-      position:absolute; left:6px; top:14px; width:24px; height:20px;
-      text-align:right;
-    }
-
-    /* Logo 40x40 at (31,5) */
-    .team-logo{
-      position:absolute; left:31px; top:5px;
-      width:40px; height:40px;
-      object-fit:contain;
-    }
-
-    /* Team name 105x25 at (76,17) — font ≈ 19px */
+    .rank{ position:absolute; left:6px;  top:14px; width:24px; height:20px; text-align:right; }
+    .team-logo{ position:absolute; left:31px; top:5px; width:40px; height:40px; object-fit:contain; }
     .team-name{
-      position:absolute; left:76px; top:17px;
-      width:105px; height:25px; line-height:25px;
-      overflow:hidden; white-space:nowrap; text-overflow:ellipsis;
-      font-size:19px; color:#eac278;  /* your yellow for names */
+      position:absolute; left:76px; top:17px; width:105px; height:25px; line-height:25px;
+      overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:19px; color:#eac278;
     }
-
-    /* Finish 38x25 at (219,17) */
-    .kills{
-      position:absolute; left:219px; top:17px;
-      width:38px; height:25px; line-height:25px;
-      text-align:center;
-    }
-
-    /* Alive icons start (267,14) with 4 skulls */
-    .status-icons{
-      position:absolute; left:267px; top:14px;
-      display:flex; gap:4px;
-    }
+    .kills{ position:absolute; left:219px; top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
+    .status-icons{ position:absolute; left:267px; top:14px; display:flex; gap:4px; }
     .status-icons img{ width:14px; height:14px; }
 
-    /* Animate only changed rows */
     @keyframes fadeSlideIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
   </style>
 </head>
 <body>
-  <!-- 1920x1080 stage -->
   <div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
-
-    <!-- Root that Firebase toggles (overlayVisible) -->
     <div id="overlayRoot" class="overlay-wrapper" style="display:block;">
-
-      <!-- Fixed-position alive status panel -->
       <div class="alive-panel">
-        <!-- Header -->
         <div class="header-row">
           <div class="header-col squads">SQUAD</div>
           <div class="header-col finish">FINISH</div>
           <div class="header-col alive">ALIVE</div>
         </div>
 
-        <!-- Rows list -->
-        <div id="overlay" class="rows"></div>
+        <!-- Scaled rows -->
+        <div class="rows-wrap">
+          <div id="rowsScale" class="rows-scale">
+            <div id="overlay"></div>
+          </div>
+        </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
-    // Your existing Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
@@ -146,26 +101,22 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Show/Hide overlay by flag (keeps header+rows together)
     const overlayRoot = document.getElementById('overlayRoot');
     db.ref('overlayVisible').on('value', snap => {
       const visible = !!snap.val();
       if (overlayRoot) overlayRoot.style.display = visible ? 'block' : 'none';
     });
 
-    // Icon set
     const icons = {
       alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
       dead:  "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
     };
-
     function createStatusIcons(aliveCount) {
       const arr = [];
       for (let i = 0; i < 4; i++) arr.push(i < aliveCount ? icons.alive : icons.dead);
       return arr;
     }
 
-    // Render with per-row change detection (animate changed rows only)
     let lastRendered = {};
     function renderOverlay(data) {
       const wrapper = document.getElementById("overlay");
@@ -182,7 +133,6 @@
 
       const sortedTeams = [...aliveTeams, ...eliminatedTeams];
 
-      // ~7 rows fit in 404px height with our sizes; clip via overflow hidden
       wrapper.innerHTML = "";
       sortedTeams.slice(0, 16).forEach((team, idx) => {
         const id = (team.name||"") + (team.kills||0) + (team.aliveCount||0);
@@ -201,7 +151,7 @@
             <div class="team-name">${team.name||''}</div>
             <div class="kills">${team.kills||0}</div>
             <div class="status-icons">
-              ${createStatusIcons(team.aliveCount||0).map(src => `<img src="${src}" alt="">`).join("")}
+              ${createStatusIcons(team.aliveCount||0).map(src => `<img src="\${src}" alt="">`).join("")}
             </div>
           </div>`;
         wrapper.appendChild(row);
