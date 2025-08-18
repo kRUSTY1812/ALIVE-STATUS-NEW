@@ -2,47 +2,55 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status — Vertical 404x827 (No Scroll)</title>
+  <title>Alive Status — Vertical 404x827 (Fixed Relative Coords)</title>
   <style>
     body { margin:0; background:transparent; font-family: Arial, sans-serif; }
-    /* Full-screen stage for easy absolute positioning */
     .overlay-wrapper{
       position:absolute; left:0; top:0;
       width:1920px; height:1080px; background:none; padding:0; border-radius:0;
     }
 
-    /* Correct panel: WIDTH 404, HEIGHT 827 at X:1484, Y:183 */
+    /* Panel: WIDTH 404, HEIGHT 827 at X:1484, Y:183 */
     .alive-panel{
       position:absolute;
       left:1484px; top:183px;
       width:404px; height:827px;
-      overflow:hidden;  /* clean edges */
-      pointer-events:none; /* safe for vMix */
+      overflow:hidden;
+      pointer-events:none;
     }
 
-    /* Header (labels box) */
-    .header-row{
-      position:absolute; left:0; top:0;
-      width:265px; height:20px;
+    /* Header background box (relative to panel) */
+    .header-bg{
+      position:absolute;
+      left:125px; top:81px;     /* stage (1609,264) -> relative (125,81) */
+      width:323px; height:23px;
       background:rgba(0,0,0,0.6);
-      color:yellow; font-weight:bold; font-size:14px; z-index:2;
+      z-index:1;
+    }
+
+    /* Header text on the same bar (relative to panel) */
+    .header-row{
+      position:absolute;
+      left:125px; top:81px;     /* align with header-bg */
+      width:323px; height:23px;
+      color:yellow; font-weight:bold; font-size:14px;
+      z-index:2;
     }
     .header-col{ position:absolute; text-align:center; }
-    /* Exact header label boxes & coordinates */
-    .header-col.squads{ left:0px;   top:0px; width:67px;  height:20px; line-height:20px; }
+    .header-col.squads{ left:0px;   top:0px; width:67px;  height:23px; line-height:23px; }
     .header-col.finish{ left:136px; top:2px; width:53px;  height:18px; line-height:18px; }
     .header-col.alive { left:217px; top:0px; width:48px;  height:18px; line-height:18px; }
 
-    /* Rows area right under header; tall enough for all rows */
+    /* Rows container starts at stage (1554,288) -> relative (70,105) */
     .rows{
-      position:absolute; left:0; top:24px;  /* header 20 + small gap */
-      width:366px; height:799px;           /* fits 16 rows with 1px gaps */
-      overflow:hidden;
+      position:absolute;
+      left:70px; top:105px;
+      width:366px; height:auto;
     }
 
-    /* Row geometry per PSD */
+    /* Each wooden plank row */
     .team{ position:relative; width:366px; height:48px; }
-    .team + .team{ margin-top:1px; } /* 1px gap so 16 rows fit */
+    .team + .team{ margin-top:1px; }
 
     .team-content{
       position:absolute; inset:0;
@@ -70,6 +78,7 @@
   <div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
     <div id="overlayRoot" class="overlay-wrapper" style="display:block;">
       <div class="alive-panel">
+        <div class="header-bg"></div>
         <div class="header-row">
           <div class="header-col squads">SQUAD</div>
           <div class="header-col finish">FINISH</div>
@@ -80,7 +89,6 @@
     </div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
