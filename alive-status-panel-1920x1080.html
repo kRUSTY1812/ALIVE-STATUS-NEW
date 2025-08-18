@@ -40,14 +40,19 @@
     .header-col.alive { left:217px; top:0px; width:48px;  height:18px; line-height:18px; }
 
     /* ROWS container starts just under header */
-    .rows {
-  position: absolute;
-  left: 0;
-  top: 28px;                /* header offset */
-  width: 366px;
-  transform: scale(0.49);   /* shrink rows */
-  transform-origin: top left;
+    .rows{
+  position:absolute;
+  left:0; 
+  top:28px;             /* just below header */
+  width:366px;
+  height:376px;         /* 404 total panel height - 28 header */
+  overflow-y:auto;      /* enable scroll */
 }
+
+.rows::-webkit-scrollbar{
+  width:0; height:0;    /* hides the scrollbar (optional) */
+}
+
 
 
     /* One team row = 366x48 plank, stacked vertically */
