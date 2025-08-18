@@ -18,11 +18,32 @@
     .alive-panel { position:absolute; left:1519px; top:253px; width:404px; height:827px; overflow:hidden; background:transparent; }
 
     /* Header (panel-relative 1609,264 -> 90,11) */
-    .header {
-      position:absolute; left:90px; top:11px; width:323px; height:23px;
-      background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:space-between;
-      padding:0 10px; box-sizing:border-box; color:#fff; font-size:14px; font-weight:700; text-transform:uppercase;
-    }
+    /* Header bar (position is RELATIVE to the panel) */
+.header{
+  position:absolute;
+  left:90px;   /* X inside panel (stage 1609 - panel 1519) */
+  top:11px;    /* Y inside panel (stage 264  - panel 253) */
+  width:323px;
+  height:23px;
+  background:rgba(0,0,0,0.6);
+  z-index:2;
+}
+
+/* Header labels (you can move each by its own x/y) */
+.hdr-label{
+  position:absolute;
+  font-weight:700;
+  text-transform:uppercase;
+  font-size:14px;
+  color:#ff0;
+  line-height:23px; /* vertical centering */
+}
+
+/* Per-label positions INSIDE the header bar */
+.hdr-label.squad  { left:0px;   top:0px;  width:67px;  height:18px; }
+.hdr-label.finish { left:136px; top:2px;  width:53px;  height:18px; line-height:18px; }
+.hdr-label.alive  { left:230px; top:2px;  width:48px;  height:18px; line-height:18px; }
+
 
     /* Rows start (panel-relative 1554,288 -> 35,35) */
     .rows { position:absolute; left:35px; top:35px; width:var(--row-w); }
@@ -43,9 +64,9 @@
     .team-name  { position:absolute; left:calc(76px + var(--shift-x)); top:17px; width:105px; height:25px; line-height:25px;
                   font-size:18.99px; font-weight:700; text-transform:uppercase; color:#eac278;
                   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .kills      { position:absolute; left:calc(219px + var(--shift-x)); top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
-    .status-icons { position:absolute; left:calc(267px + var(--shift-x)); top:14px; display:flex; gap:4px; }
-    .status-icons img { width:14px; height:14px; }
+    .kills      { position:absolute; left:calc(216px + var(--shift-x)); top:17px; font-size:18.99px; font-weight:700;  width:38px; height:25px; line-height:25px; text-align:left; }
+    .status-icons { position:absolute; left:calc(268px + var(--shift-x)); top:14px; display:flex; gap:4px; }
+    .status-icons img { width:21px; height:21px; }
 
     @keyframes fadeSlideIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
   </style>
@@ -53,7 +74,11 @@
 <body>
   <div class="stage">
     <div id="overlayRoot" class="alive-panel" style="display:block;">
-      <div class="header"><div>Squad</div><div>Finish</div><div>Alive</div></div>
+      <div class="header">
+  <div class="hdr-label squad">SQUAD</div>
+  <div class="hdr-label finish">FINISH</div>
+  <div class="hdr-label alive">ALIVE</div>
+</div>
       <div id="rows" class="rows"></div>
     </div>
   </div>
