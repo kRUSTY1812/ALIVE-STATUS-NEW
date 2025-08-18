@@ -2,83 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status — No Scrollbar</title>
+  <title>Alive Status — Clean Wood, No Scroll</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     /* Remove all scrollbars */
     html, body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: transparent;
-      overflow: hidden;           /* ✅ no scrollbars */
-      width: 100%;
-      height: 100%;
+      overflow: hidden;
+      width: 100%; height: 100%;
       font-family: 'Montserrat', sans-serif;
     }
 
     /* 1920x1080 stage */
     .stage {
       position: relative;
-      width: 1920px;
-      height: 1080px;
+      width: 1920px; height: 1080px;
       background: transparent;
-      overflow: hidden;           /* clip anything outside the stage */
+      overflow: hidden;
     }
 
-    /* Vertical panel: 404x827 at X=1519, Y=253 (keep as in your layout) */
+    /* Vertical panel: 404x827 at X=1519, Y=253 */
     .alive-panel {
       position: absolute;
-      left: 1519px;
-      top: 253px;
-      width: 404px;
-      height: 827px;
+      left: 1519px; top: 253px;
+      width: 404px; height: 827px;
       background: transparent;
-      overflow: hidden;           /* keep panel clean, still no scrollbars */
+      overflow: hidden; /* keep panel tidy */
     }
 
-    /* Header black bar (panel-relative: matches stage 1609,264) */
+    /* Header black bar (panel-relative: 1609,264 -> 90,11) */
     .header {
       position: absolute;
-      left: 90px;                 /* 1609 - 1519 */
-      top: 11px;                  /*  264 -  253 */
-      width: 323px;
-      height: 23px;
+      left: 90px; top: 11px;
+      width: 323px; height: 23px;
       background: rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 10px;
-      box-sizing: border-box;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 700;
-      text-transform: uppercase;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 10px; box-sizing: border-box;
+      color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase;
     }
 
-    /* Rows start (panel-relative: matches stage 1554,288) */
+    /* Rows start (panel-relative: 1554,288 -> 35,35) */
     .rows {
       position: absolute;
-      left: 35px;                 /* 1554 - 1519 */
-      top: 35px;                  /*  288 -  253 */
+      left: 35px; top: 35px;
       width: 366px;
     }
 
-    /* Wooden plank row (fixed box, no flex) */
+    /* Wooden plank row (fixed box, exact-fit background) */
     .team {
       position: relative;
-      width: 366px;
-      height: 48px;
-      margin: 0 0 1px 0;
+      width: 366px; height: 48px;
+      margin: 0; /* no seams between rows */
     }
+    .team + .team { margin-top: 0; }
 
     .team-content {
-      position: absolute;
-      inset: 0;
-      background: url('assets/wood.png') no-repeat center/cover, #5a3e22; /* wood bg + fallback */
-      color: #fff;
-      box-sizing: border-box;
+      position: absolute; inset: 0;
+      background: url('assets/wood.png') no-repeat left center, #5a3e22; /* wood + fallback */
+      background-size: 100% 100%; /* exact fit (no crop/zoom) */
+      color: #fff; box-sizing: border-box;
     }
 
+    /* Element positions inside plank */
     .team-logo  { position:absolute; left:31px; top:5px;  width:40px; height:40px; object-fit:contain; }
     .team-name  { position:absolute; left:76px; top:17px; width:105px; height:25px; line-height:25px;
                   font-size:18.99px; font-weight:700; text-transform:uppercase; color:#eac278;
@@ -87,6 +73,7 @@
     .status-icons { position:absolute; left:267px; top:14px; display:flex; gap:4px; }
     .status-icons img { width:14px; height:14px; }
 
+    /* Optional: change animation on updates */
     @keyframes fadeSlideIn { from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);} }
   </style>
 </head>
@@ -107,7 +94,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
   <script>
-    // Firebase config (same as your project)
     const firebaseConfig = {
       apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
       authDomain: "team-overlay.firebaseapp.com",
@@ -120,7 +106,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Toggle visibility
+    // Toggle visibility from DB
     const overlayRoot = document.getElementById('overlayRoot');
     db.ref('overlayVisible').on('value', snap => {
       overlayRoot.style.display = snap.val() ? 'block' : 'none';
@@ -130,15 +116,13 @@
       alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
       dead:  "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
     };
-
     function makeIcons(aliveCount=0){
       const arr = [];
       for(let i=0;i<4;i++){ arr.push(i < (aliveCount||0) ? ICONS.alive : ICONS.dead); }
       return arr;
     }
 
-    // Remove '#' by default; set to true if you want numeric rank shown
-    const SHOW_RANK = false;
+    const SHOW_RANK = false; // leave rank column hidden
     let lastRendered = {};
 
     function render(data){
