@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Alive Status — Vertical 404x827 (Fixed Relative Coords)</title>
+  <title>Alive Status — Vertical 404x827 (No Scroll, Unclipped)</title>
   <style>
     body { margin:0; background:transparent; font-family: Arial, sans-serif; }
     .overlay-wrapper{
@@ -15,23 +15,23 @@
       position:absolute;
       left:1484px; top:183px;
       width:404px; height:827px;
-      overflow:hidden;
+      overflow:visible;         /* KEY FIX: allow content to extend beyond panel */
       pointer-events:none;
     }
 
-    /* Header background box (relative to panel) */
+    /* Header background box (stage 1609,264 -> panel-relative 125,81) */
     .header-bg{
       position:absolute;
-      left:125px; top:81px;     /* stage (1609,264) -> relative (125,81) */
+      left:125px; top:81px;
       width:323px; height:23px;
       background:rgba(0,0,0,0.6);
       z-index:1;
     }
 
-    /* Header text on the same bar (relative to panel) */
+    /* Header text on the same bar */
     .header-row{
       position:absolute;
-      left:125px; top:81px;     /* align with header-bg */
+      left:125px; top:81px;
       width:323px; height:23px;
       color:yellow; font-weight:bold; font-size:14px;
       z-index:2;
@@ -41,7 +41,7 @@
     .header-col.finish{ left:136px; top:2px; width:53px;  height:18px; line-height:18px; }
     .header-col.alive { left:217px; top:0px; width:48px;  height:18px; line-height:18px; }
 
-    /* Rows container starts at stage (1554,288) -> relative (70,105) */
+    /* Rows container start (stage 1554,288 -> panel-relative 70,105) */
     .rows{
       position:absolute;
       left:70px; top:105px;
