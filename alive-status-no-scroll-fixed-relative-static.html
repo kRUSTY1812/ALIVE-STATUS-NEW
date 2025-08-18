@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alive Status — No Scroll (Fixed & Static)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      background: transparent;
+      font-family: 'Montserrat', sans-serif;
+      overflow: hidden; /* no scrollbars */
+      width: 100%; height: 100%;
+    }
+
+    .overlay-wrapper {
+      position: absolute; left: 0; top: 0;
+      width: 1920px; height: 1080px;
+      overflow: hidden;
+    }
+
+    .alive-panel {
+      position: absolute;
+      left: 1519px;
+      top: 253px;
+      width: 404px; height: 827px;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    .header {
+      position: absolute;
+      left: 90px;  /* 1609-1519 */
+      top: 11px;   /*  264- 253 */
+      width: 323px; height: 23px;
+      background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 10px; box-sizing: border-box;
+      color: #fff; font-size: 14px; font-weight: 700; text-transform: uppercase;
+    }
+
+    .rows {
+      position: absolute;
+      left: 35px;  /* 1554-1519 */
+      top: 35px;   /*  288- 253 */
+      width: 366px;
+    }
+
+    .team {
+      position: relative; width: 366px; height: 48px;
+      margin: 0 0 1px 0;
+      background: url('assets/wood.png') no-repeat center/cover, #5a3e22;
+      color: #fff;
+    }
+    .team-logo { position:absolute; left:31px; top:5px; width:40px; height:40px; object-fit: contain; }
+    .team-name { position:absolute; left:76px; top:17px; width:105px; height:25px; line-height:25px;
+                 font-size: 18.99px; font-weight:700; text-transform: uppercase; color:#eac278;
+                 white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .kills     { position:absolute; left:219px; top:17px; width:38px; height:25px; line-height:25px; text-align:center; }
+    .status-icons { position:absolute; left:267px; top:14px; display:flex; gap:4px; }
+    .status-icons img { width:14px; height:14px; }
+  </style>
+</head>
+<body>
+  <div class="overlay-wrapper">
+    <div class="alive-panel">
+      <div class="header">
+        <div>Squad</div><div>Finish</div><div>Alive</div>
+      </div>
+      <div class="rows">
+        
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 1</div>
+  <div class="kills">0</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 2</div>
+  <div class="kills">1</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 3</div>
+  <div class="kills">2</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 4</div>
+  <div class="kills">3</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 5</div>
+  <div class="kills">4</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 6</div>
+  <div class="kills">5</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 7</div>
+  <div class="kills">6</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 8</div>
+  <div class="kills">7</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 9</div>
+  <div class="kills">8</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 10</div>
+  <div class="kills">9</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 11</div>
+  <div class="kills">0</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 12</div>
+  <div class="kills">1</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 13</div>
+  <div class="kills">2</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 14</div>
+  <div class="kills">3</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 15</div>
+  <div class="kills">4</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+
+<div class="team">
+  <img class="team-logo" src="https://dummyimage.com/40x40/222/fff.png&text=T" alt="logo">
+  <div class="team-name">TEAM 16</div>
+  <div class="kills">5</div>
+  <div class="status-icons">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a1">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a2">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png" alt="a3">
+    <img src="https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png" alt="d1">
+  </div>
+</div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
