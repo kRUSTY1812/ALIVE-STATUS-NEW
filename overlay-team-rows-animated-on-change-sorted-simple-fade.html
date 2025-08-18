@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Sorted Alive Status Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: transparent;
+    }
+    .overlay-wrapper {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 404px;
+      height: 827px;
+      background: none;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .header-row {
+      display: flex;
+      height: 33px;
+      line-height: 33px;
+      align-items: center;
+      padding: 6px;
+      background: rgba(0, 0, 0, 0.7);
+      color: yellow;
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    .header-row .team-name {
+      padding-left: 30px;
+    }
+    .header-row .kills {
+      transform: translateX(-40px);
+    }
+    .team {
+      display: flex;
+      height: 43px;
+      line-height: 43px;
+      margin-bottom: 0px;
+      align-items: center;
+      padding: 4px 6px;
+      font-size: 16px;
+      background: none;
+      color: white;
+    }
+    .rank {
+      width: 28px;
+      text-align: right;
+      padding-right: 5px;
+    }
+    .team-logo {
+      width: 26px;
+      height: 26px;
+      margin-left: 30px;
+      margin-right: 6px;
+    }
+    .team-name {
+      flex: 1.5;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: white;
+      padding-left: 30px;
+    }
+    .kills {
+      width: 30px;
+      text-align: center;
+      transform: translateX(-40px);
+    }
+    .status-icons {
+      display: flex;
+      gap: 3px;
+    }
+    .team-content {
+      width: 100%;
+      height: 100%;
+      background: url('assets/wood.png') no-repeat center/cover;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+      box-sizing: border-box;
+    }
+    .status-icons img {
+      width: 14px;
+      height: 14px;
+    }
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+<div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
+  <div class="overlay-wrapper" style="position: absolute; left: 1484px; top: 183px;">
+    <div class="header-row">
+      <div class="rank">#</div>
+      <div style="width: 26px;"></div>
+      <div class="team-name">TEAM</div>
+      <div class="kills">FIN</div>
+      <div class="status-icons">STATUS</div>
+    </div>
+    <div id="overlay"></div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
+      authDomain: "team-overlay.firebaseapp.com",
+      databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "team-overlay",
+      storageBucket: "team-overlay.appspot.com",
+      messagingSenderId: "751537440201",
+      appId: "1:751537440201:web:ee16879d25632d4bb1d418"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const icons = {
+      alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
+      dead: "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
+    };
+
+    function createStatusIcons(aliveCount) {
+      const total = 4;
+      const iconsArr = [];
+      for (let i = 0; i < total; i++) {
+        iconsArr.push(i < aliveCount ? icons.alive : icons.dead);
+      }
+      return iconsArr;
+    }
+
+    let lastRendered = {};
+
+    function renderOverlay(data) {
+      const wrapper = document.getElementById("overlay");
+      const teamsArray = Object.values(data || {});
+
+      const aliveTeams = teamsArray.filter(t => t.aliveCount > 0);
+      const eliminatedTeams = teamsArray.filter(t => t.aliveCount === 0);
+
+      aliveTeams.sort((a, b) => {
+        if (b.kills !== a.kills) return b.kills - a.kills;
+        return b.aliveCount - a.aliveCount;
+      });
+
+      eliminatedTeams.sort((a, b) => b.kills - a.kills);
+
+      const sortedTeams = [...aliveTeams, ...eliminatedTeams];
+      wrapper.innerHTML = "";
+
+      sortedTeams.slice(0, 16).forEach((team, idx) => {
+        const id = team.name + team.kills + team.aliveCount;
+        const changed = lastRendered[team.name] !== id;
+        lastRendered[team.name] = id;
+
+        const row = document.createElement("div");
+        row.className = "team";
+
+        const anim = changed ? `style="opacity: 0; animation: fadeSlideIn 0.3s ease forwards;"` : "";
+
+        row.innerHTML = `<div class='team-content' ${anim}>
+          <div class="rank">#${idx + 1}</div>
+          <img class="team-logo" src="${team.logo}" onerror="this.style.display='none'">
+          <div class="team-name">${team.name}</div>
+          <div class="kills">${team.kills}</div>
+          <div class="status-icons">
+            ${createStatusIcons(team.aliveCount).map(icon => `<img src="${icon}">`).join("")}
+          </div>
+        </div>`;
+        wrapper.appendChild(row);
+      });
+    }
+
+    db.ref("teams").on("value", snapshot => {
+      renderOverlay(snapshot.val());
+    });
+  </script>
+</div>
+</body>
+</html>
