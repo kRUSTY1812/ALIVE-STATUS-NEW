@@ -104,7 +104,7 @@
 </head>
 <body>
 <div style="position: relative; width: 1920px; height: 1080px; background: transparent;">
-  <div class="overlay-wrapper" style="position: absolute; left: 1484px; top: 183px;">
+  <div id="overlayRoot" class="overlay-wrapper" style="position: absolute; left: 1484px; top: 183px; display:block;">
     <div class="header-row">
       <div class="rank">#</div>
       <div style="width: 26px;"></div>
@@ -129,6 +129,16 @@
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    
+// Show/Hide overlay by flag
+const overlayRoot = document.getElementById('overlayRoot');
+db.ref('overlayVisible').on('value', snap => {
+  const visible = !!snap.val();
+  if (overlayRoot) overlayRoot.style.display = visible ? 'block' : 'none';
+});
+
+
 
     const icons = {
       alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
