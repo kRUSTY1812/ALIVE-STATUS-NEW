@@ -129,9 +129,20 @@
 <input id="player2" placeholder="Player 2 Name" style="flex: 1; min-width: 200px;" type="text"/>
 <input id="player3" placeholder="Player 3 Name" style="flex: 1; min-width: 200px;" type="text"/>
 <input id="player4" placeholder="Player 4 Name" style="flex: 1; min-width: 200px;" type="text"/>
+<input id="player5" placeholder="Player 5 Name" style="flex: 1; min-width: 200px;" type="text"/>
+<input id="player6" placeholder="Player 6 Name" style="flex: 1; min-width: 200px;" type="text"/>
 </div>
 <button onclick="addOrUpdateTeam()">Add / Update</button>
 </div>
+
+<div class="form-row" style="margin-top:10px;">
+  <input id="sheetJsonUrl" type="text" placeholder="Paste Google Sheet JSON URL (Apps Script Web App)" style="flex:1; min-width:380px;">
+  <button onclick="importTeamsFromSheet()" style="background:#7e57c2;">Import Teams</button>
+</div>
+<p style="font-size:12px; opacity:.8; margin-top:4px;">
+  Expects JSON: { teams: [ { name, logo, players:[p1,p2,p3,p4] } ] }
+</p>
+
 <div class="playing-teams">
 <h3>PLAYING TEAMS</h3>
 <div id="teamList"></div>
@@ -788,6 +799,53 @@ function resetMatch() {
     alert('❌ Reset failed: ' + err);
     console.error(err);
   });
+}
+</script>
+
+
+<script>
+async function importTeamsFromSheet() {
+  const url = (document.getElementById('sheetJsonUrl').value || '').trim();
+  if (!url) return alert('Paste your Apps Script Web App URL that returns JSON.');
+  try {
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const teams = data.teams || [];
+    if (!Array.isArray(teams) || teams.length === 0) {
+      alert('No teams found in JSON. Expecting { teams: [...] }');
+      return;
+    }
+    const updates = {};
+    teams.forEach(t => {
+      const name = (t.name || '').trim();
+      const logo = (t.logo || '').trim();
+      if (!name) return;
+      const id = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+      const players = (t.players && t.players.length) ? t.players.slice(0,4) : [
+        t.player1 || '', t.player2 || '', t.player3 || '', t.player4 || ''
+      ];
+      // Default stats
+      updates['teams/' + id] = {
+        name: name,
+        logo: logo,
+        players: [players[0]||'', players[1]||'', players[2]||'', players[3]||''],
+        kills: 0,
+        aliveCount: 4,
+        killsArray: [0,0,0,0],
+        status: [1,1,1,1]
+      };
+    });
+    if (Object.keys(updates).length === 0) {
+      alert('Nothing to import.');
+      return;
+    }
+    await firebase.database().ref().update(updates);
+    alert('✅ Imported ' + Object.keys(updates).length + ' team(s) from Sheet.');
+  } catch (e) {
+    console.error(e);
+    alert('❌ Import failed: ' + e.message);
+  }
 }
 </script>
 
