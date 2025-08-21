@@ -55,6 +55,7 @@
     /* --- Staggered animations --- */
     @keyframes rowIn { from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform: translateY(0); } }
     @keyframes rowOut { from{ opacity:1; transform: translateY(0); } to{ opacity:0; transform: translateY(-10px); } }
+    @keyframes rowChange { 0%{ opacity:0.2; transform: translateY(10px); } 100%{ opacity:1; transform: translateY(0); } }
 
     .enter {
       animation-name: rowIn;
@@ -161,7 +162,7 @@
     let lastMap = new Map(); // key -> { rowEl, signature }
 
     function rowHtml(team, idx, changed){
-      const contentAnim = changed ? 'style="opacity:0; animation: rowIn .25s ease forwards;"' : '';
+      const contentAnim = changed ? 'style="animation: rowChange .28s ease-out both;"' : '';
       return `
         <img class="wood-bg" src="assets/wood.png" alt="wood">
         <div class="team-content" ${contentAnim}>
