@@ -803,51 +803,170 @@ function resetMatch() {
 </script>
 
 
+
 <script>
 async function importTeamsFromSheet() {
   const url = (document.getElementById('sheetJsonUrl').value || '').trim();
-  if (!url) return alert('Paste your Apps Script Web App URL that returns JSON.');
+  if (!url) return alert('Paste your Apps Script (or CSV/JSON) URL.');
   try {
     const res = await fetch(url, { method: 'GET' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const teams = data.teams || [];
-    if (!Array.isArray(teams) || teams.length === 0) {
-      alert('No teams found in JSON. Expecting { teams: [...] }');
-      return;
+    const raw = await res.text();
+
+    let data = null;
+    // Try parse JSON first (allow anti-XSSI prefixes)
+    try {
+      const safe = raw.replace(/^[\uFEFF\s]*\)\]\}'\s*/,'').trim();
+      data = JSON.parse(safe);
+    } catch (e) {
+      // Not JSON -> try CSV
     }
+
+    let teams = [];
+
+    // --- JSON shapes ---
+    if (data) {
+      if (Array.isArray(data.teams)) {
+        teams = data.teams;
+      } else if (Array.isArray(data)) {
+        teams = data; // assume array of team objects
+      } else if (Array.isArray(data.rows)) {
+        // rows=[{...}] or rows=[["Team Name",...], ["IQOO8BIT",...]]
+        if (Array.isArray(data.rows[0])) {
+          teams = arrayOfArraysToTeams(data.rows);
+        } else {
+          teams = normalizeObjectArray(data.rows);
+        }
+      } else if (Array.isArray(data.data)) {
+        if (Array.isArray(data.data[0])) {
+          teams = arrayOfArraysToTeams(data.data);
+        } else {
+          teams = normalizeObjectArray(data.data);
+        }
+      } else if (Array.isArray(data.values)) {
+        teams = arrayOfArraysToTeams(data.values);
+      } else if (data.result && Array.isArray(data.result.values)) {
+        teams = arrayOfArraysToTeams(data.result.values);
+      } else if (data.sheet && Array.isArray(data.sheet)) {
+        teams = normalizeObjectArray(data.sheet);
+      } else {
+        // Look for first array anywhere
+        const firstArray = Object.values(data).find(v => Array.isArray(v) && v.length);
+        if (firstArray) {
+          if (Array.isArray(firstArray[0])) teams = arrayOfArraysToTeams(firstArray);
+          else teams = normalizeObjectArray(firstArray);
+        }
+      }
+    }
+
+    // --- CSV fallback ---
+    if (!teams.length && raw) {
+      const parsed = parseCSV(raw);
+      if (parsed && parsed.length > 1) {
+        teams = arrayOfArraysToTeams(parsed);
+      }
+    }
+
+    if (!teams.length) {
+      throw new Error('No teams found. Expecting a teams list via JSON or CSV.');
+    }
+
+    // Build Firebase updates
     const updates = {};
     teams.forEach(t => {
-      const name = (t.name || '').trim();
-      const logo = (t.logo || '').trim();
+      // Case-normalize keys (so 'Team Name' works)
+      const tt = {};
+      Object.keys(t || {}).forEach(k => tt[k.toLowerCase()] = t[k]);
+
+      // Normalize fields
+      const name = (tt['name'] || tt['team'] || tt['team name'] || '').toString().trim();
+      const logo = (tt['logo'] || tt['logo url'] || '').toString().trim();
+
+      // players: prefer array, else pick Player 1..4 / P1..P4 (case-insensitive)
+      let players = [];
+      if (Array.isArray(tt['players'])) players = tt['players'];
+      for (let i=1;i<=8;i++){
+        const v = tt['player '+i] ?? tt['p'+i] ?? tt['player'+i];
+        if (v !== undefined) players.push(String(v));
+      }
+
       if (!name) return;
       const id = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-      const players = (t.players && t.players.length) ? t.players.slice(0,4) : [
-        t.player1 || '', t.player2 || '', t.player3 || '', t.player4 || ''
-      ];
-      // Default stats
+      const p = [players[0]||'', players[1]||'', players[2]||'', players[3]||''];
       updates['teams/' + id] = {
-        name: name,
-        logo: logo,
-        players: [players[0]||'', players[1]||'', players[2]||'', players[3]||''],
-        kills: 0,
-        aliveCount: 4,
+        name, logo,
+        players: p,
+        kills: 0, aliveCount: 4,
         killsArray: [0,0,0,0],
         status: [1,1,1,1]
       };
     });
-    if (Object.keys(updates).length === 0) {
-      alert('Nothing to import.');
-      return;
-    }
+
+    const count = Object.keys(updates).length;
+    if (!count) throw new Error('Data parsed but no valid team names found.');
+
     await firebase.database().ref().update(updates);
-    alert('✅ Imported ' + Object.keys(updates).length + ' team(s) from Sheet.');
+    alert('✅ Imported ' + count + ' team(s).');
   } catch (e) {
     console.error(e);
     alert('❌ Import failed: ' + e.message);
   }
+
+  // Helpers
+  function normalizeObjectArray(arr){
+    return arr.map(r=>{
+      const obj = {};
+      Object.keys(r||{}).forEach(k=>obj[k.toLowerCase()] = r[k]);
+      return obj;
+    });
+  }
+  function arrayOfArraysToTeams(rows){
+    if (!Array.isArray(rows) || !rows.length) return [];
+    const header = rows[0].map(h => String(h||'').trim().toLowerCase());
+    const idx = (name) => header.indexOf(String(name).toLowerCase());
+    const tn = idx('team name'); const lg = idx('logo url');
+    const p1 = idx('player 1'), p2 = idx('player 2'), p3 = idx('player 3'), p4 = idx('player 4');
+    return rows.slice(1).filter(r=> (r[tn]||'').toString().trim() !== '').map(r=> ({
+      name: r[tn] || '',
+      logo: r[lg] || '',
+      players: [r[p1]||'', r[p2]||'', r[p3]||'', r[p4]||'']
+    }));
+  }
+  function parseCSV(text){
+    // Simple CSV parser with quotes support
+    const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim().length);
+    const out = [];
+    let i=0;
+    while(i<lines.length){
+      const row = [];
+      let line = lines[i], j=0, cur='', inQ=false;
+      while(j<line.length){
+        const ch = line[j];
+        if (inQ){
+          if (ch === '"'){
+            if (j+1<line.length && line[j+1] === '"'){ cur+='"'; j++; }
+            else { inQ=false; }
+          } else {
+            cur += ch;
+          }
+        } else {
+          if (ch === ','){ row.push(cur); cur=''; }
+          else if (ch === '"'){ inQ=true; }
+          else { cur += ch; }
+        }
+        j++;
+      }
+      row.push(cur);
+      // If still in quotes, join with next line(s)
+      if (inQ && i+1<lines.length){ lines[i+1] = row.pop() + '\n' + lines[i+1]; continue; }
+      out.push(row);
+      i++;
+    }
+    return out;
+  }
 }
 </script>
+
 
 </body>
 </html>
