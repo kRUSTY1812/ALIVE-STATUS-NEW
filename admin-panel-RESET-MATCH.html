@@ -153,7 +153,7 @@
 <label for="matchSelectorKillsAlive" style="color: white; font-weight: bold;">Select Match:</label>
 <select id="matchSelectorKillsAlive" onchange="loadMatchDataForKillsAlive()" style="padding: 5px 10px; font-size: 14px; margin-left: 10px;">
 <option value="">-- Select Match --</option><option value="match1">Match 1</option><option value="match2">Match 2</option><option value="match3">Match 3</option><option value="match4">Match 4</option><option value="match5">Match 5</option><option value="match6">Match 6</option><option value="match7">Match 7</option><option value="match8">Match 8</option><option value="match9">Match 9</option><option value="match10">Match 10</option><option value="match11">Match 11</option><option value="match12">Match 12</option><option value="match13">Match 13</option><option value="match14">Match 14</option><option value="match15">Match 15</option><option value="match16">Match 16</option><option value="match17">Match 17</option><option value="match18">Match 18</option></select>
-<button onclick="endMatchKillsAlive()" style="margin-left: 15px; padding: 6px 12px; font-size: 14px; background: #e53935; color: white; border: none; border-radius: 4px;">MATCH END</button>
+<button onclick="endMatchKillsAlive()" style="margin-left: 15px; padding: 6px 12px; font-size: 14px; background: #e53935; color: white; border: none; border-radius: 4px;">MATCH END</button><button onclick="resetMatch()" style="margin-left: 10px; padding: 6px 12px; font-size: 14px; background: #757575; color: white; border: none; border-radius: 4px;">RESET MATCH</button>
 </div>
 <div id="teamsContainer"></div>
 <div class="tab-content" id="matchData">
@@ -754,5 +754,42 @@ function endMatchKillsAlive() {
 }
 
 </script>
+
+<script>
+// Reset Match: set all player kills to 0 and mark all players as alive (status=1), and aliveCount=4.
+function resetMatch() {
+  if (!confirm('Reset ALL teams for the next match?\n\nThis will: \n• Set every player\'s kills = 0\n• Mark every player as ALIVE (1)\n• Set team total kills = 0 and aliveCount = 4')) return;
+
+  if (typeof firebase === 'undefined' || !firebase.apps.length) {
+    alert('Firebase not initialized.');
+    return;
+  }
+  var dbLocal = firebase.database();
+
+  dbLocal.ref('teams').once('value').then(function(snapshot) {
+    var teams = snapshot.val() || {};
+    var updates = {};
+    Object.keys(teams).forEach(function(id) {
+      updates['teams/' + id + '/killsArray'] = [0,0,0,0];
+      updates['teams/' + id + '/kills'] = 0;
+      updates['teams/' + id + '/status'] = [1,1,1,1];
+      updates['teams/' + id + '/aliveCount'] = 4;
+    });
+    return dbLocal.ref().update(updates);
+  }).then(function() {
+    // Optimistic UI refresh where possible
+    try {
+      document.querySelectorAll("[id^='teamKills_']").forEach(function(el){ el.textContent = '0'; });
+      document.querySelectorAll("[id^='playerKill_']").forEach(function(el){ el.textContent = '0'; });
+      document.querySelectorAll("[id^='playerStatus_']").forEach(function(el){ el.textContent = '1'; });
+    } catch(e) {}
+    alert('✅ Match reset complete.');
+  }).catch(function(err) {
+    alert('❌ Reset failed: ' + err);
+    console.error(err);
+  });
+}
+</script>
+
 </body>
 </html>
