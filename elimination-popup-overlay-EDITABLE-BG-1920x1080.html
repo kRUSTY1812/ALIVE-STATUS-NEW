@@ -130,7 +130,7 @@
       // Data binding
       document.getElementById('logo').src = team.logo || "";
       document.getElementById('teamName').textContent = team.name || "";
-      "document.getElementById('finValue').textContent = String(team.kills || 0).padStart(2,'0');"
+      document.getElementById('finValue').textContent = String(team.kills || 0).padStart(2,'0');
       document.getElementById('rankValue').textContent = String(rank);
 
       // Show + animate (bg + panel + controller)
