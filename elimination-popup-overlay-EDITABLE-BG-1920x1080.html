@@ -12,7 +12,7 @@
       --bg-w: 655px;
       --bg-h: 339px;
     }
-    body{ margin:0; padding:0; background:transparent; overflow:hidden; }
+    body{ margin:0; padding:0; background:transparent; overflow:hidden; width:1920px; height:1080px; }
 
     /* Background image (editable X/Y/Size) */
     #bgImage{
@@ -71,9 +71,20 @@
       90%{ opacity:1; transform: translate(-50%, -50%); }
       100%{ opacity:0; transform: translate(-50%, -40%); }
     }
+  
+    /* Fixed 1920x1080 stage */
+    #stage{
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+    }
+
   </style>
 </head>
 <body>
+  <div id="stage">
   <!-- Editable background image -->
   <img id="bgImage" src="assets/elimination bg.png" alt="background">
 
@@ -157,5 +168,6 @@
       });
     });
   </script>
+  </div>
 </body>
 </html>
