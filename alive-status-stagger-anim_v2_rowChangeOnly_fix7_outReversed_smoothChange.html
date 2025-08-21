@@ -55,7 +55,12 @@
     /* --- Staggered animations --- */
     @keyframes rowIn { from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform: translateY(0); } }
     @keyframes rowOut { from{ opacity:1; transform: translateY(0); } to{ opacity:0; transform: translateY(-10px); } }
-    @keyframes rowChange { 0%{ opacity:0.2; transform: translateY(10px); } 100%{ opacity:1; transform: translateY(0); } }
+@keyframes rowOutUp { from { opacity:1; transform: translateY(0); } to { opacity:0; transform: translateY(-10px); } }
+@keyframes rowChange { 0%{ opacity:0.2; transform: translateY(10px); } 100%{ opacity:1; transform: translateY(0); } }
+    /* Data-change animation, isolated via a class so exit stays intact */
+    .team.changed .team-content { animation: rowChange .6s cubic-bezier(0.16, 1, 0.3, 1); }
+    /* When exiting, suppress any child change animation to avoid conflicts */
+    .team.exit .team-content { animation: none !important; }
 
     .enter {
       animation-name: rowIn;
@@ -65,7 +70,7 @@
       animation-delay: var(--d, 0ms); /* set per-row */
     }
     .exit {
-      animation-name: rowOut;
+      animation-name: rowOutUp !important;
       animation-duration: 220ms;
       animation-timing-function: ease-in;
       animation-fill-mode: both;
@@ -121,9 +126,11 @@
         // stagger out then hide root
         const list = Array.from(rowsEl.children);
         let done = 0;
+        const N = list.length;
         list.forEach((row, i) => {
           row.classList.remove('enter');
-          row.style.setProperty('--d', (i * 80) + 'ms');
+          row.style.setProperty('--d', ((N - 1 - i) * 80) + 'ms');
+          row.classList.remove('changed');
           row.classList.add('exit');
           row.addEventListener('animationend', () => {
             done++;
@@ -162,7 +169,7 @@
     let lastMap = new Map(); // key -> { rowEl, signature }
 
     function rowHtml(team, idx, changed){
-      const contentAnim = changed ? 'style="animation: rowChange .28s ease-out both;"' : '';
+      const contentAnim = changed ? '' : '';
       return `
         <img class="wood-bg" src="assets/wood.png" alt="wood">
         <div class="team-content" ${contentAnim}>
@@ -195,13 +202,14 @@
         if (!newKeys.includes(key)){
           el.style.setProperty('--d', (exitIndex++ * 80) + 'ms');
           el.classList.remove('enter');
+          el.classList.remove('changed');
           el.classList.add('exit');
           el.addEventListener('animationend', () => el.remove(), { once:true });
         }
       });
 
       // Create/Update rows in the new order with staggered ENTER
-      rowsEl.innerHTML = '';
+      // rowsEl.innerHTML = ''; // (disabled to prevent re-inserting all rows)
       const newMap = new Map();
       sorted.forEach((team, i) => {
         const key = team.name || ('team'+i);
@@ -214,10 +222,20 @@
           const changed = prev.signature != signature;
           rowEl.innerHTML = rowHtml(team, i, changed);
           rowEl.classList.remove('exit');
+          rowEl.classList.remove('enter'); if (changed) {
+  rowEl.classList.add('changed');
+  const content = rowEl.querySelector('.team-content');
+  if (content) content.addEventListener('animationend', () => rowEl.classList.remove('changed'), { once: true });
+} else {
+  rowEl.classList.remove('changed');
+}
+// prevent re-triggering enter on updates
         } else {
           rowEl = document.createElement('div');
           rowEl.className = 'team enter';
           rowEl.innerHTML = rowHtml(team, i, true);
+          // remove 'enter' after first animation completes
+          rowEl.addEventListener('animationend', () => rowEl.classList.remove('enter'), { once:true });
         }
         rowEl.dataset.key = key;
         rowEl.style.setProperty('--d', (i * 80) + 'ms'); // stagger IN
