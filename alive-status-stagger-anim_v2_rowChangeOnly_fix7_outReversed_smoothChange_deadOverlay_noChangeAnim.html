@@ -64,6 +64,7 @@
   display:none;
 }
 .team.dead .dead-overlay { display:block; animation: deadOverlayIn .28s ease-out both; }
+.team.exit .dead-overlay { animation: none !important; }
 
 @keyframes deadOverlayIn {
   from { opacity:0; transform: scale(0.98); }
@@ -240,8 +241,14 @@
         if (prev){
           rowEl = prev.rowEl;
           const changed = prev.signature != signature;
+          const wasDead = prev.rowEl.classList.contains('dead');
+          const isDead = (team.aliveCount||0) === 0;
           rowEl.innerHTML = rowHtml(team, i, changed);
-          rowEl.classList.toggle('dead', (team.aliveCount||0) === 0);
+          rowEl.classList.toggle('dead', isDead);
+          if (isDead && wasDead) {
+            const overlay = rowEl.querySelector('.dead-overlay');
+            if (overlay) { overlay.style.animation = 'none'; }
+          }
           rowEl.classList.remove('exit');
           rowEl.classList.remove('enter'); if (changed) {
   rowEl.classList.add('changed');
