@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Elimination Popup - Editable BG</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      /* ==== Edit these to move/resize the background image ==== */
+      --bg-x: 618px;
+      --bg-y: 125px;
+      --bg-w: 655px;
+      --bg-h: 339px;
+    }
+    body{ margin:0; padding:0; background:transparent; overflow:hidden; }
+
+    /* Background image (editable X/Y/Size) */
+    #bgImage{
+      position:absolute;
+      left: var(--bg-x);
+      top:  var(--bg-y);
+      width: var(--bg-w);
+      height: var(--bg-h);
+      display:none;               /* show on trigger */
+      z-index:0;
+      pointer-events:none;
+    }
+
+    /* Content panel sits exactly over the same rect */
+    .elim-board{
+      position:absolute;
+      left: var(--bg-x);
+      top:  var(--bg-y);
+      width: var(--bg-w);
+      height: var(--bg-h);
+      display:none;               /* show on trigger */
+      z-index:1;
+      pointer-events:none;
+      color:#fff;
+      text-shadow:0 2px 6px rgba(0,0,0,0.35);
+      font-family: 'Montserrat', Arial, sans-serif;
+    }
+    .elim-inner{ position:absolute; inset:0; }
+
+    /* Example positions (adjust as needed) */
+    .elim-name{
+      position:absolute; left:180px; right:40px; top:150px;
+      font-weight:800; font-size:26px; color:#EAC278; text-transform:uppercase;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.6px;
+    }
+    .elim-logo{ position:absolute; left:72px; top:160px; width:100px; height:100px; display:grid; place-items:center; }
+    .elim-logo img{ width:100%; height:100%; object-fit:contain; display:block; }
+    .fin-label{ position:absolute; left:280px; top:201px; width:129px; height:22px; font-weight:700; font-size:16px; color:rgba(255,255,255,0.9); }
+    .fin-value{ position:absolute; left:280px; top:201px; width:88px; height:38px; transform:translateY(26px); font-weight:900; font-size:38px; line-height:38px; }
+    .rank-label{ position:absolute; left:441px; top:201px; width:66px; height:22px; font-weight:700; font-size:16px; color:rgba(255,255,255,0.9); }
+    .rank-value-wrap{ position:absolute; left:441px; top:201px; width:78px; height:38px; transform:translateY(26px); display:flex; align-items:center; gap:4px; }
+    .rank-hash{ font-weight:900; font-size:22px; line-height:38px; }
+    .rank-value{ font-weight:900; font-size:38px; line-height:38px; }
+
+    /* Animation controller */
+    #eliminationBox{
+      position:absolute; left:50%; top:20%;
+      transform:translate(-50%,-50%);
+      display:none;
+      z-index:2;
+      animation: slideFade 4s ease-in-out;
+    }
+    @keyframes slideFade{
+      0% { opacity:0; transform: translate(-50%, -60%); }
+      10%{ opacity:1; transform: translate(-50%, -50%); }
+      90%{ opacity:1; transform: translate(-50%, -50%); }
+      100%{ opacity:0; transform: translate(-50%, -40%); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Editable background image -->
+  <img id="bgImage" src="assets/elimination bg.png" alt="background">
+
+  <!-- Panel on top of background -->
+  <div class="elim-board">
+    <div class="elim-inner">
+      <div class="elim-logo">
+        <img id="logo" src="" alt="team logo">
+      </div>
+      <div class="elim-name" id="teamName">TEAM NAME</div>
+      <div class="fin-label">FINISHES</div>
+      <div class="fin-value" id="finValue">000</div>
+      <div class="rank-label">RANK</div>
+      <div class="rank-value-wrap">
+        <span class="rank-hash">#</span>
+        <span class="rank-value" id="rankValue">16</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invisible controller (just to reuse timing) -->
+  <div id="eliminationBox"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
+      authDomain: "team-overlay.firebaseapp.com",
+      databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "team-overlay",
+      storageBucket: "team-overlay.appspot.com",
+      messagingSenderId: "751537440201",
+      appId: "1:751537440201:web:ee16879d25632d4bb1d418"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const shown = new Set();
+    const eliminationOrder = [];
+
+    function showElimination(team, rank){
+      // Data binding
+      document.getElementById('logo').src = team.logo || "";
+      document.getElementById('teamName').textContent = team.name || "";
+      document.getElementById('finValue').textContent = String(team.kills || 0).padStart(3,'0');
+      document.getElementById('rankValue').textContent = String(rank);
+
+      // Show + animate (bg + panel + controller)
+      const box = document.getElementById('eliminationBox');
+      const bg  = document.getElementById('bgImage');
+      const panel = document.querySelector('.elim-board');
+
+      box.style.display = 'block';
+      box.style.animation = 'slideFade 4s ease-in-out';
+
+      bg.style.display = 'block';
+      bg.style.animation = 'slideFade 4s ease-in-out';
+
+      panel.style.display = 'block';
+      panel.style.animation = 'slideFade 4s ease-in-out';
+
+      setTimeout(()=>{
+        box.style.display = 'none';
+        bg.style.display = 'none';
+        panel.style.display = 'none';
+      }, 4000);
+    }
+
+    db.ref("teams").on("value", (snapshot) => {
+      const data = snapshot.val();
+      if(!data) return;
+      Object.entries(data).forEach(([id, team]) => {
+        if (team.aliveCount === 0 && !shown.has(id)) {
+          shown.add(id);
+          eliminationOrder.push({ id, timestamp: Date.now() });
+          const ordered = eliminationOrder.sort((a,b) => a.timestamp - b.timestamp);
+          const rank = 16 - ordered.findIndex(entry => entry.id === id);
+          showElimination(team, rank);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
