@@ -138,6 +138,7 @@
 <div class="form-row" style="margin-top:10px;">
   <input id="sheetJsonUrl" type="text" placeholder="Paste Google Sheet JSON URL (Apps Script Web App)" style="flex:1; min-width:380px;">
   <button onclick="importTeamsFromSheet()" style="background:#7e57c2;">Import Teams</button>
+  <button onclick="deleteAllTeams()" style="background:#e53935; margin-left:10px;">Delete All Teams</button>
 </div>
 <p style="font-size:12px; opacity:.8; margin-top:4px;">
   Expects JSON: { teams: [ { name, logo, players:[p1,p2,p3,p4] } ] }
@@ -967,6 +968,29 @@ async function importTeamsFromSheet() {
 }
 </script>
 
+
+
+<script>
+function deleteAllTeams() {
+  if (!confirm('⚠️ Delete ALL teams from Firebase?\n\nThis will remove the entire /teams node. This cannot be undone.')) return;
+  if (typeof firebase === 'undefined' || !firebase.apps.length) {
+    alert('Firebase not initialized.');
+    return;
+  }
+  const db = firebase.database();
+  db.ref('teams').remove().then(() => {
+    try {
+      // Optimistically clear UI if list container exists
+      const list = document.querySelector('.playing-teams .team-list');
+      if (list) list.innerHTML = '';
+    } catch(e) {}
+    alert('🗑️ All teams deleted.');
+  }).catch(err => {
+    console.error(err);
+    alert('❌ Delete failed: ' + err.message);
+  });
+}
+</script>
 
 </body>
 </html>
