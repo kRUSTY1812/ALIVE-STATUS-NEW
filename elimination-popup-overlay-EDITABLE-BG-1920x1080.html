@@ -44,14 +44,14 @@
 
     /* Example positions (adjust as needed) */
     .elim-name{
-      position:absolute; left:340px; right:100px; top:150px;
+      position:absolute; left:340px; right:150px; top:150px;text-align: center; 
       font-weight:800; font-size:26px; color:#EAC278; text-transform:uppercase;
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0.6px;
     }
     .elim-logo{ position:absolute; left:130px; top:144px; width:120px; height:120px; display:grid; place-items:center; }
     .elim-logo img{ width:100%; height:100%; object-fit:contain; display:block; }
     .fin-label{ position:absolute; left:310px; top:201px; width:129px; height:22px; font-weight:700; font-size:16px; color:rgba(255,255,255,0.9); }
-    .fin-value{ position:absolute; left:310px; top:201px; width:88px; height:38px; transform:translateY(26px); font-weight:900; font-size:38px; line-height:38px; }
+    .fin-value{ position:absolute; left:325px; top:201px; width:88px; height:38px; transform:translateY(26px); font-weight:900; font-size:38px; line-height:38px; }
     .rank-label{ position:absolute; left:480px; top:201px; width:66px; height:22px; font-weight:700; font-size:16px; color:rgba(255,255,255,0.9); }
     .rank-value-wrap{ position:absolute; left:470px; top:201px; width:78px; height:38px; transform:translateY(26px); display:flex; align-items:center; gap:4px; }
     .rank-hash{ font-weight:900; font-size:22px; line-height:38px; }
@@ -96,7 +96,7 @@
       </div>
       <div class="elim-name" id="teamName">TEAM NAME</div>
       <div class="fin-label">FINISHES</div>
-      <div class="fin-value" id="finValue">000</div>
+      <div class="fin-value" id="finValue">00</div>
       <div class="rank-label">RANK</div>
       <div class="rank-value-wrap">
         <span class="rank-hash">#</span>
@@ -130,7 +130,7 @@
       // Data binding
       document.getElementById('logo').src = team.logo || "";
       document.getElementById('teamName').textContent = team.name || "";
-      document.getElementById('finValue').textContent = String(team.kills || 0).padStart(3,'0');
+      "document.getElementById('finValue').textContent = String(team.kills || 0).padStart(2,'0');"
       document.getElementById('rankValue').textContent = String(rank);
 
       // Show + animate (bg + panel + controller)
