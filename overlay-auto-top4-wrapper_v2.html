@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Wrapper v2: Keep Alive Status Untouched + Smooth Top-4 (diff-only)</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:transparent;overflow:hidden;width:100%;height:100%;font-family:'Montserrat',sans-serif}
+  .stage{position:relative;width:1920px;height:1080px;background:transparent}
+  /* Original alive status kept intact in an iframe */
+  #aliveFrame{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;z-index:10;background:transparent}
+
+  /* Top-4 popup layered above */
+  #top4Panel{position:absolute;left:50%;transform:translateX(-50%);top:50px;width:1300px;display:none;pointer-events:none;z-index:20}
+  #top4Wrap{display:grid;justify-content:center;align-items:center;gap:12px}
+
+  .top-card{
+    position:relative;height:120px;border-radius:10px;background:#4b2a78;
+    display:flex;align-items:center;padding:12px 16px;box-sizing:border-box;
+    /* Use transitions for movement between slots (FLIP), not keyframes to avoid flicker */
+    transition: transform 220ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease;
+    will-change: transform, opacity;
+  }
+  .top-logo{width:64px;height:64px;object-fit:contain;margin-right:14px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+  .top-meta{display:flex;flex-direction:column;gap:6px}
+  .top-name{font-weight:700;font-size:24px;color:#fff;text-transform:uppercase;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top-icons{display:flex;gap:6px}
+  .top-icons img{width:22px;height:22px}
+
+  /* New card entry */
+  .enter{opacity:0;transform:translateY(-14px)}
+  .enter.enter-active{opacity:1;transform:translateY(0)}
+
+  /* Card leaving (team died or dropped out of Top-4) */
+  .out{opacity:1}
+  .out.out-active{opacity:0;transform:translateY(-14px)}
+
+  /* Subtle change pulse ONLY when aliveCount/kills changed */
+  @keyframes changedPulse{0%{transform:translateY(-4px)}100%{transform:translateY(0)}}
+  .changed .top-meta{animation:changedPulse 280ms cubic-bezier(.16,1,.3,1)}
+
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+  <div class="stage">
+    <!-- Your original file is loaded untouched here -->
+    <iframe id="aliveFrame" src="alive-status-stagger-anim_v2_rowChangeOnly_fix7_outReversed_smoothChange_deadOverlay_noChangeAnim.html"></iframe>
+
+    <!-- Auto Top-4 popup -->
+    <div id="top4Panel">
+      <div id="top4Wrap"></div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDIO3wksMFhs4j8FzI9VwTX_4sGJ1r12-0",
+      authDomain: "team-overlay.firebaseapp.com",
+      databaseURL: "https://team-overlay-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "team-overlay",
+      storageBucket: "team-overlay.appspot.com",
+      messagingSenderId: "751537440201",
+      appId: "1:751537440201:web:ee16879d25632d4bb1d418"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const aliveFrame = document.getElementById('aliveFrame');
+    const top4Panel  = document.getElementById('top4Panel');
+    const top4Wrap   = document.getElementById('top4Wrap');
+
+    /* Icons – same look as your Alive Status */
+    const ICONS = {
+      alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
+      dead:  "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
+    };
+    function makeIcons(aliveCount=0){
+      const arr=[]; for(let i=0;i<4;i++){ arr.push(i < (aliveCount||0) ? ICONS.alive : ICONS.dead); } return arr;
+    }
+
+    /* Diffing state for Top-4 */
+    let topColumns = 4;                       // current grid columns shown
+    let cardState = new Map();                // key -> {kills, aliveCount, name, logo}
+    const getSig = (t)=>`${t.aliveCount||0}|${t.kills||0}|${t.name||''}|${t.logo||''}`;
+
+    /* Helpers */
+    function setColumns(n){ top4Wrap.style.gridTemplateColumns = `repeat(${Math.max(1,n)}, 1fr)`; topColumns=n; }
+    setColumns(4);
+
+    function showTop4(){ aliveFrame.classList.add('hidden'); top4Panel.style.display='block'; }
+    function showAlive(){ top4Panel.style.display='none'; aliveFrame.classList.remove('hidden'); }
+
+    /* FLIP animation for reordering without flicker */
+    function flipMove(elementsBefore){
+      // elementsBefore: Map(key -> DOMRect) captured BEFORE DOM reflow
+      requestAnimationFrame(()=>{
+        elementsBefore.forEach((rectBefore, key)=>{
+          const el = Array.from(top4Wrap.children).find(c=>c.dataset.key===key);
+          if(!el || el.classList.contains('enter') || el.classList.contains('out')) return;
+          const rectAfter = el.getBoundingClientRect();
+          const dx = rectBefore.left - rectAfter.left;
+          const dy = rectBefore.top  - rectAfter.top;
+          if(Math.abs(dx)||Math.abs(dy)){
+            el.style.transition = 'none';
+            el.style.transform = `translate(${dx}px, ${dy}px)`;
+            // next frame: move to natural place
+            requestAnimationFrame(()=>{
+              el.style.transition = 'transform 220ms cubic-bezier(.2,.9,.2,1)';
+              el.style.transform = 'translate(0,0)';
+            });
+          }
+        });
+      });
+    }
+
+    /* Build Top-4 cards with diff-only updates */
+    function renderTop4(aliveTeams){
+      const top = [...aliveTeams]
+        .sort((a,b)=>(b.aliveCount||0)-(a.aliveCount||0) || (b.kills||0)-(a.kills||0))
+        .slice(0,4);
+
+      const newKeys = top.map(t=>t.name||'');         // using team name as key (consistent with your data)
+      const beforeRects = new Map();                  // capture positions for FLIP
+      Array.from(top4Wrap.children).forEach(el=>beforeRects.set(el.dataset.key, el.getBoundingClientRect()));
+
+      // Mark cards to exit
+      const toExit = Array.from(top4Wrap.children).filter(el => !newKeys.includes(el.dataset.key));
+      let pendingExits = toExit.length;
+
+      // If column count reduces (4->3 or 3->2), keep old columns until exits finish to avoid jump
+      const newCols = Math.max(1, top.length);
+      const shouldDelayCols = newCols < topColumns && pendingExits>0;
+
+      toExit.forEach(el=>{
+        el.classList.add('out');
+        // trigger "out-active" on next frame for smooth fade
+        requestAnimationFrame(()=> el.classList.add('out-active'));
+        el.addEventListener('transitionend', ()=>{
+          el.remove();
+          pendingExits--;
+          if(shouldDelayCols && pendingExits===0){ setColumns(newCols); } // now reduce columns
+        }, { once:true });
+      });
+
+      // Create or update existing cards, and re-order
+      top.forEach((t, i)=>{
+        const key = t.name||`team${i}`;
+        let card = Array.from(top4Wrap.children).find(el=>el.dataset.key===key);
+        const prevSig = cardState.get(key);
+        const sig = getSig(t);
+
+        if(!card){
+          // New card
+          card = document.createElement('div');
+          card.className = 'top-card enter';
+          card.dataset.key = key;
+          card.innerHTML = `
+            <img class="top-logo" src="${t.logo||''}" onerror="this.style.display='none'">
+            <div class="top-meta">
+              <div class="top-name">${(t.name||'').toString()}</div>
+              <div class="top-icons">
+                ${makeIcons(t.aliveCount||0).map(s=>`<img src="${s}">`).join('')}
+              </div>
+            </div>`;
+          // Insert into the right order
+          top4Wrap.appendChild(card);
+          // animate in
+          requestAnimationFrame(()=>{
+            card.classList.add('enter-active');
+            card.addEventListener('transitionend', ()=>{
+              card.classList.remove('enter','enter-active');
+            }, { once:true });
+          });
+        }else{
+          // Existing card: only update fields that changed to avoid resetting animations
+          const changed = prevSig !== sig;
+          if(changed){
+            const nameEl = card.querySelector('.top-name');
+            const logoEl = card.querySelector('.top-logo');
+            const iconsEl = card.querySelector('.top-icons');
+            if(nameEl && nameEl.textContent !== (t.name||'')) nameEl.textContent = (t.name||'');
+            if(logoEl && logoEl.src !== (t.logo||'')) logoEl.src = (t.logo||'');
+            if(iconsEl){
+              const want = makeIcons(t.aliveCount||0);
+              const imgs = Array.from(iconsEl.children);
+              for(let i=0;i<4;i++){
+                if(imgs[i]){
+                  if(imgs[i].src !== want[i]) imgs[i].src = want[i];
+                }else{
+                  const im = document.createElement('img'); im.src = want[i]; iconsEl.appendChild(im);
+                }
+              }
+            }
+            card.classList.add('changed');
+            card.addEventListener('animationend', ()=>card.classList.remove('changed'), { once:true });
+          }
+          // Reorder by appending in sequence (DOM append moves element without re-creating)
+          top4Wrap.appendChild(card);
+        }
+        cardState.set(key, sig);
+      });
+
+      // If columns increase (2->3 or 3->4), expand immediately
+      if(newCols > topColumns){ setColumns(newCols); }
+
+      // Smooth movement for surviving cards
+      flipMove(beforeRects);
+    }
+
+    /* Visibility logic (wrapper only; doesn't touch inner file) */
+    function computeAliveTeams(teams){
+      const arr = Object.values(teams||{});
+      return arr.filter(t => (t.aliveCount||0) > 0);
+    }
+
+    let overlayToggle = true; // optional /overlayVisible
+    db.ref('overlayVisible').on('value', s=>{
+      overlayToggle = (s.val() !== false);
+      if(!overlayToggle){ top4Panel.style.display='none'; aliveFrame.classList.add('hidden'); }
+      else if(lastAliveCount>4){ showAlive(); }
+      else if(lastAliveCount>0){ showTop4(); }
+    });
+
+    let lastAliveCount = 999;
+    db.ref('teams').on('value', snap=>{
+      const aliveTeams = computeAliveTeams(snap.val());
+      if(!overlayToggle){ return; }
+
+      if(aliveTeams.length>0 && aliveTeams.length<=4){
+        renderTop4(aliveTeams);
+        showTop4();
+      }else{
+        showAlive();
+      }
+      lastAliveCount = aliveTeams.length;
+    });
+  </script>
+</body>
+</html>
