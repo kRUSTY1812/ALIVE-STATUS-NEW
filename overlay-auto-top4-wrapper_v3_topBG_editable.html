@@ -2,55 +2,96 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Wrapper v2: Keep Alive Status Untouched + Smooth Top-4 (diff-only)</title>
+<title>Wrapper v3: Top-4 with Provided BG + Editable Positions/Sizes</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+  /* ======= EASY CONTROLS (edit these) ======= */
+  :root{
+    /* Overall popup scale (shrinks/grows everything uniformly) */
+    --top4-scale: 0.92;      /* 1 = original size */
+
+    /* Card background/base size (auto-set from BG image on load; you can override) */
+    --card-w: 340px;         /* BG natural width if known */
+    --card-h: 164px;         /* BG natural height if known */
+    --card-gap: 10px;        /* gap between cards */
+
+    /* Content placement INSIDE each card (pixels from card's top-left) */
+    --logo-x: 18px;          /* logo position */
+    --logo-y: 32px;
+    --name-x: 110px;         /* team name position */
+    --name-y: 40px;
+    --icons-x: 110px;        /* alive icons position (first icon) */
+    --icons-y: 78px;
+
+    /* Sizes */
+    --logo-size: 56px;
+    --name-size: 22px;
+    --name-width: 210px;     /* max width before ellipsis */
+    --icons-size: 18px;      /* each icon w/h */
+    --icons-gap: 6px;
+
+    /* Text alignment for name: left | center | right */
+    --name-align: left;
+  }
+
   html,body{margin:0;padding:0;background:transparent;overflow:hidden;width:100%;height:100%;font-family:'Montserrat',sans-serif}
   .stage{position:relative;width:1920px;height:1080px;background:transparent}
-  /* Original alive status kept intact in an iframe */
+
+  /* Keep original Alive Status untouched */
   #aliveFrame{position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;z-index:10;background:transparent}
 
-  /* Top-4 popup layered above */
-  #top4Panel{position:absolute;left:50%;transform:translateX(-50%);top:50px;width:1300px;display:none;pointer-events:none;z-index:20}
-  #top4Wrap{display:grid;justify-content:center;align-items:center;gap:12px}
+  /* Top-4 popup */
+  #top4Panel{
+    position:absolute;left:50%;top:50px;transform:translateX(-50%) scale(var(--top4-scale));transform-origin:top center;
+    display:none;pointer-events:none;z-index:20;
+    /* width is set dynamically from JS so it fits N cards in one row */
+  }
+  #top4Wrap{
+    display:grid;justify-content:center;align-items:center;gap:var(--card-gap);
+    grid-auto-flow:column; /* keep in one row when width permits */
+  }
 
   .top-card{
-    position:relative;height:120px;border-radius:10px;background:#4b2a78;
-    display:flex;align-items:center;padding:12px 16px;box-sizing:border-box;
-    /* Use transitions for movement between slots (FLIP), not keyframes to avoid flicker */
+    position:relative;width:var(--card-w);height:var(--card-h);
+    display:block; /* absolute children handle layout */
     transition: transform 220ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease;
     will-change: transform, opacity;
   }
-  .top-logo{width:64px;height:64px;object-fit:contain;margin-right:14px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
-  .top-meta{display:flex;flex-direction:column;gap:6px}
-  .top-name{font-weight:700;font-size:24px;color:#fff;text-transform:uppercase;max-width:260px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .top-icons{display:flex;gap:6px}
-  .top-icons img{width:22px;height:22px}
+  .top-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}
+  .top-inner{position:absolute;left:0;top:0;width:100%;height:100%}
 
-  /* New card entry */
+  .top-logo{
+    position:absolute;left:var(--logo-x);top:var(--logo-y);
+    width:var(--logo-size);height:var(--logo-size);object-fit:contain;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.35));
+  }
+  .top-name{
+    position:absolute;left:var(--name-x);top:var(--name-y);
+    font-weight:700;font-size:var(--name-size);color:#fff;text-transform:uppercase;
+    width:var(--name-width);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-align:var(--name-align);
+  }
+  .top-icons{position:absolute;left:var(--icons-x);top:var(--icons-y);display:flex;gap:var(--icons-gap)}
+  .top-icons img{width:var(--icons-size);height:var(--icons-size)}
+
+  /* Enter/Exit + change animations (non-intrusive) */
   .enter{opacity:0;transform:translateY(-14px)}
   .enter.enter-active{opacity:1;transform:translateY(0)}
-
-  /* Card leaving (team died or dropped out of Top-4) */
   .out{opacity:1}
   .out.out-active{opacity:0;transform:translateY(-14px)}
-
-  /* Subtle change pulse ONLY when aliveCount/kills changed */
   @keyframes changedPulse{0%{transform:translateY(-4px)}100%{transform:translateY(0)}}
-  .changed .top-meta{animation:changedPulse 280ms cubic-bezier(.16,1,.3,1)}
+  .changed .top-inner{animation:changedPulse 280ms cubic-bezier(.16,1,.3,1)}
 
   .hidden{display:none!important}
 </style>
 </head>
 <body>
   <div class="stage">
-    <!-- Your original file is loaded untouched here -->
+    <!-- Your original alive overlay loaded untouched -->
     <iframe id="aliveFrame" src="alive-status-stagger-anim_v2_rowChangeOnly_fix7_outReversed_smoothChange_deadOverlay_noChangeAnim.html"></iframe>
 
-    <!-- Auto Top-4 popup -->
-    <div id="top4Panel">
-      <div id="top4Wrap"></div>
-    </div>
+    <!-- Top-4 popup layer -->
+    <div id="top4Panel"><div id="top4Wrap"></div></div>
   </div>
 
   <!-- Firebase -->
@@ -73,30 +114,57 @@
     const top4Panel  = document.getElementById('top4Panel');
     const top4Wrap   = document.getElementById('top4Wrap');
 
-    /* Icons – same look as your Alive Status */
+    /* Assets */
+    const BG_CANDIDATES = ['TOP 5 BG.png','assets/TOP 5 BG.png'];
     const ICONS = {
       alive: "https://alive-status-new-m1la.vercel.app/assets/alive-yellow.png",
       dead:  "https://alive-status-new-m1la.vercel.app/assets/eliminated-red.png"
     };
+
+    // Resolve BG path and set --card-w/--card-h from natural size
+    (function resolveBG(){
+      function tryLoad(i){
+        if(i>=BG_CANDIDATES.length){ return; }
+        const img = new Image();
+        img.onload = () => {
+          document.documentElement.style.setProperty('--card-w', img.naturalWidth+'px');
+          document.documentElement.style.setProperty('--card-h', img.naturalHeight+'px');
+          window.__TOP_BG__ = BG_CANDIDATES[i];
+          // Also set initial panel width for 4 cards
+          updatePanelWidth(4);
+        };
+        img.onerror = () => tryLoad(i+1);
+        img.src = BG_CANDIDATES[i];
+      }
+      tryLoad(0);
+    })();
+
     function makeIcons(aliveCount=0){
       const arr=[]; for(let i=0;i<4;i++){ arr.push(i < (aliveCount||0) ? ICONS.alive : ICONS.dead); } return arr;
     }
 
-    /* Diffing state for Top-4 */
-    let topColumns = 4;                       // current grid columns shown
-    let cardState = new Map();                // key -> {kills, aliveCount, name, logo}
+    /* Grid helpers */
+    function cssNum(v){ return parseFloat(getComputedStyle(document.documentElement).getPropertyValue(v)) || 0; }
+    function updatePanelWidth(cols){
+      const w = cssNum('--card-w') * cols + cssNum('--card-gap') * (cols-1);
+      top4Panel.style.width = w + 'px';
+    }
+
+    let topColumns = 4;
+    let cardState = new Map();
     const getSig = (t)=>`${t.aliveCount||0}|${t.kills||0}|${t.name||''}|${t.logo||''}`;
 
-    /* Helpers */
-    function setColumns(n){ top4Wrap.style.gridTemplateColumns = `repeat(${Math.max(1,n)}, 1fr)`; topColumns=n; }
+    function setColumns(n){
+      top4Wrap.style.gridTemplateColumns = `repeat(${Math.max(1,n)}, var(--card-w))`;
+      updatePanelWidth(n);
+      topColumns=n;
+    }
     setColumns(4);
 
     function showTop4(){ aliveFrame.classList.add('hidden'); top4Panel.style.display='block'; }
     function showAlive(){ top4Panel.style.display='none'; aliveFrame.classList.remove('hidden'); }
 
-    /* FLIP animation for reordering without flicker */
     function flipMove(elementsBefore){
-      // elementsBefore: Map(key -> DOMRect) captured BEFORE DOM reflow
       requestAnimationFrame(()=>{
         elementsBefore.forEach((rectBefore, key)=>{
           const el = Array.from(top4Wrap.children).find(c=>c.dataset.key===key);
@@ -107,7 +175,6 @@
           if(Math.abs(dx)||Math.abs(dy)){
             el.style.transition = 'none';
             el.style.transform = `translate(${dx}px, ${dy}px)`;
-            // next frame: move to natural place
             requestAnimationFrame(()=>{
               el.style.transition = 'transform 220ms cubic-bezier(.2,.9,.2,1)';
               el.style.transform = 'translate(0,0)';
@@ -117,36 +184,30 @@
       });
     }
 
-    /* Build Top-4 cards with diff-only updates */
     function renderTop4(aliveTeams){
       const top = [...aliveTeams]
         .sort((a,b)=>(b.aliveCount||0)-(a.aliveCount||0) || (b.kills||0)-(a.kills||0))
         .slice(0,4);
 
-      const newKeys = top.map(t=>t.name||'');         // using team name as key (consistent with your data)
-      const beforeRects = new Map();                  // capture positions for FLIP
+      const newKeys = top.map(t=>t.name||'');
+      const beforeRects = new Map();
       Array.from(top4Wrap.children).forEach(el=>beforeRects.set(el.dataset.key, el.getBoundingClientRect()));
 
-      // Mark cards to exit
       const toExit = Array.from(top4Wrap.children).filter(el => !newKeys.includes(el.dataset.key));
       let pendingExits = toExit.length;
-
-      // If column count reduces (4->3 or 3->2), keep old columns until exits finish to avoid jump
       const newCols = Math.max(1, top.length);
-      const shouldDelayCols = newCols < topColumns && pendingExits>0;
+      const delayCols = newCols < topColumns && pendingExits>0;
 
       toExit.forEach(el=>{
         el.classList.add('out');
-        // trigger "out-active" on next frame for smooth fade
         requestAnimationFrame(()=> el.classList.add('out-active'));
         el.addEventListener('transitionend', ()=>{
           el.remove();
           pendingExits--;
-          if(shouldDelayCols && pendingExits===0){ setColumns(newCols); } // now reduce columns
+          if(delayCols && pendingExits===0){ setColumns(newCols); }
         }, { once:true });
       });
 
-      // Create or update existing cards, and re-order
       top.forEach((t, i)=>{
         const key = t.name||`team${i}`;
         let card = Array.from(top4Wrap.children).find(el=>el.dataset.key===key);
@@ -154,21 +215,20 @@
         const sig = getSig(t);
 
         if(!card){
-          // New card
           card = document.createElement('div');
           card.className = 'top-card enter';
           card.dataset.key = key;
+          const bgSrc = window.__TOP_BG__ || BG_CANDIDATES[0];
           card.innerHTML = `
-            <img class="top-logo" src="${t.logo||''}" onerror="this.style.display='none'">
-            <div class="top-meta">
+            <img class="top-bg" src="${bgSrc}">
+            <div class="top-inner">
+              <img class="top-logo" src="${t.logo||''}" onerror="this.style.display='none'">
               <div class="top-name">${(t.name||'').toString()}</div>
               <div class="top-icons">
                 ${makeIcons(t.aliveCount||0).map(s=>`<img src="${s}">`).join('')}
               </div>
             </div>`;
-          // Insert into the right order
           top4Wrap.appendChild(card);
-          // animate in
           requestAnimationFrame(()=>{
             card.classList.add('enter-active');
             card.addEventListener('transitionend', ()=>{
@@ -176,7 +236,6 @@
             }, { once:true });
           });
         }else{
-          // Existing card: only update fields that changed to avoid resetting animations
           const changed = prevSig !== sig;
           if(changed){
             const nameEl = card.querySelector('.top-name');
@@ -198,26 +257,21 @@
             card.classList.add('changed');
             card.addEventListener('animationend', ()=>card.classList.remove('changed'), { once:true });
           }
-          // Reorder by appending in sequence (DOM append moves element without re-creating)
           top4Wrap.appendChild(card);
         }
         cardState.set(key, sig);
       });
 
-      // If columns increase (2->3 or 3->4), expand immediately
-      if(newCols > topColumns){ setColumns(newCols); }
-
-      // Smooth movement for surviving cards
+      if(newCols > topColumns){ setColumns(newCols); }  // expand immediately
       flipMove(beforeRects);
     }
 
-    /* Visibility logic (wrapper only; doesn't touch inner file) */
     function computeAliveTeams(teams){
       const arr = Object.values(teams||{});
       return arr.filter(t => (t.aliveCount||0) > 0);
     }
 
-    let overlayToggle = true; // optional /overlayVisible
+    let overlayToggle = true;
     db.ref('overlayVisible').on('value', s=>{
       overlayToggle = (s.val() !== false);
       if(!overlayToggle){ top4Panel.style.display='none'; aliveFrame.classList.add('hidden'); }
@@ -229,13 +283,8 @@
     db.ref('teams').on('value', snap=>{
       const aliveTeams = computeAliveTeams(snap.val());
       if(!overlayToggle){ return; }
-
-      if(aliveTeams.length>0 && aliveTeams.length<=4){
-        renderTop4(aliveTeams);
-        showTop4();
-      }else{
-        showAlive();
-      }
+      if(aliveTeams.length>0 && aliveTeams.length<=4){ renderTop4(aliveTeams); showTop4(); }
+      else{ showAlive(); }
       lastAliveCount = aliveTeams.length;
     });
   </script>
